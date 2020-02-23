@@ -1,14 +1,14 @@
 // **********************************************************************************************************************
 // User Switch on D4
 // J5 - Analog In Port
-//    A0
-//    A1
+//    A0 - Soil Sensor 1
+//    A1 - Soil Sensor 2
 // J6 - Analog In Port
-//    A2
-//    A5
+//    A2 - Pressure Sensor
+//    A5 - 5V Device Shutdown - Active Low
 // J7 - Digital In Port
-//    D3
-//    D2
+//    D3 - Solenoid Enable - active low
+//    D2 - Solenoid Direction - HIGH = on
 // I2C 1
 //    SHT-31
 // I2C 2

@@ -16,11 +16,13 @@
 // v7 - Still not fixed.  Simplified sleep state and added another chance to connect
 // v8 - Adding Blue Led for awake detection
 // v9 - Ensuring we stay conected and deliver data to Ubidots - Minor fixes
+// v10 - Fixed userSwitch pin assignment
+// v11 - Adding new features from sensor expansion board - Motor Contol, Pressure and 2x Soil Sensors
 
 // Particle Product definitions
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(9);
-const char releaseNumber[4] = "9";                  // Displays the release on the menu 
+PRODUCT_VERSION(11);
+const char releaseNumber[4] = "11";                  // Displays the release on the menu 
 
 
 // Included Libraries
@@ -58,7 +60,14 @@ State oldState = INITIALIZATION_STATE;
 
 // Pin Constants
 const int blueLED =       D7;                     // This LED is on the Electron itself
-const int userSwitch =    D5;                     // User switch with a pull-up resistor
+const int userSwitch =    D4;                     // User switch with a pull-up resistor
+const int soilPin1 =      A0;                     // First Soil Sensor
+const int soilPin2 =      A1;                     // Second Soil Sensor
+const int pressurePin =   A2;                     // Pressure Sensor
+const int sensorShutdown =A5;                     // Disables the 5V sensors - Pressure / Soil1 and Soil 2
+const int solEnablePin =  D3;                     // Active LOW - enables the solenoid
+const int solDirection =  D2;                     // Soleniod direction HIGH = ON, 
+
 
 // Timing Variables
 const int wakeBoundary = 1*3600 + 0*60 + 0;         // 1 hour 0 minutes 0 seconds
@@ -83,7 +92,9 @@ char SignalString[64];                     // Used to communicate Wireless RSSI 
 const char* radioTech[8] = {"Unknown","None","WiFi","GSM","UMTS","CDMA","LTE","IEEE802154"};
 char temperatureString[16];
 char humidityString[16];
-char soilMoistureString[16];
+char soilMoisture1String[16];
+char soilMoisture2String[16];
+char waterPressureString[16];
 char batteryString[16];
 char powerContext[24];                              // One word that describes whether the device is getting power, charging, discharging or too cold to charge
 
@@ -98,7 +109,10 @@ bool lowPowerMode;                                  // Flag for Low Power Mode o
 // This section is where we will initialize sensor specific variables, libraries and function prototypes
 float temperatureInC = 0;                           // Temp / Humidity Sensor variables
 float relativeHumidity = 0;
-int soilMoisture = 0;                               // Soil sensor variables
+int soilMoisture1 = 0;                               // Soil sensor variables
+int soilMoisture2 = 0;                               // Soil sensor variables
+int waterPressure = 0;                               // Water Pressure Value (0-5PSI)
+int solenoidState = 0;                               // Solenoid State (-1 close, 0 disabled, 1 open)
 
 void setup()                                                      // Note: Disconnected Setup()
 {
@@ -107,6 +121,15 @@ void setup()                                                      // Note: Disco
 
   pinMode(blueLED, OUTPUT);                                       // declare the Blue LED Pin as an output
   pinMode(userSwitch,INPUT);                                      // Momentary contact button on board for direct user input
+  pinMode(soilMoisture1, INPUT);
+  pinMode(soilMoisture2, INPUT);
+  pinMode(pressurePin, INPUT);
+  pinMode(sensorShutdown, OUTPUT);
+  digitalWrite(sensorShutdown,HIGH);
+  pinMode(solEnablePin,OUTPUT);                                     
+  pinMode(solDirection,OUTPUT);                                      
+  digitalWrite(solEnablePin,HIGH);                               // Disables the solenoid valve
+  digitalWrite(solDirection,LOW);                                // Set to close the valve
 
   char responseTopic[125];
   String deviceID = System.deviceID();                            // Multiple Electrons share the same hook - keeps things straight
@@ -121,13 +144,16 @@ void setup()                                                      // Note: Disco
   Particle.variable("LowPowerMode",lowPowerMode);
   Particle.variable("Temperature", temperatureString);
   Particle.variable("Humidity", humidityString);
-  Particle.variable("SoilMoisture", soilMoisture);
+  Particle.variable("SoilMoisture1", soilMoisture1);
+  Particle.variable("SoilMoisture2", soilMoisture2);
+  Particle.variable("Pressure", waterPressure);
 
   Particle.function("Measure-Now",measureNow);
   Particle.function("LowPowerMode",setLowPowerMode);
   Particle.function("Solar-Mode",setSolarMode);
   Particle.function("Verbose-Mode",setVerboseMode);
   Particle.function("SetTimeZone",setTimeZone);
+  Particle.function("SetSolenoid",setSolenoid);
 
   if (MEMORYMAPVERSION != EEPROM.read(MEM_MAP::versionAddr)) {          // Check to see if the memory map is the right version
     EEPROM.put(MEM_MAP::versionAddr,MEMORYMAPVERSION);
@@ -162,8 +188,15 @@ void setup()                                                      // Note: Disco
   lowPowerMode    = (0b00000001 & controlRegister);                     // Set the lowPowerMode
   solarPowerMode  = (0b00000100 & controlRegister);                     // Set the solarPowerMode
   verboseMode     = (0b00001000 & controlRegister);                     // Set the verboseMode
-                                            
+  
   PMICreset();                                                          // Executes commands that set up the PMIC for Solar charging - once we know the Solar Mode
+
+  if (!digitalRead(userSwitch)) {                                       // Rescue mode to locally take lowPowerMode so you can connect to device
+    lowPowerMode = false;                                               // Press the user switch while resetting the device
+    controlRegister = (0b11111110 & controlRegister);                   // Turn off Low power mode
+    EEPROM.write(controlRegister,MEM_MAP::controlRegisterAddr);         // Write to the EEMPROM
+    snprintf(StartupMessage, sizeof(StartupMessage), "User Button - Detected");
+  }
 
   takeMeasurements();                                                   // For the benefit of monitoring the device
 
@@ -174,14 +207,8 @@ void setup()                                                      // Note: Disco
     snprintf(StartupMessage, sizeof(StartupMessage), "Failed to connect");
   }
 
-  if (!digitalRead(userSwitch)) {                                       // Rescue mode to locally take lowPowerMode so you can connect to device
-    lowPowerMode = false;                                               // Press the user switch while resetting the device
-    controlRegister = (0b11111110 & controlRegister);                   // Turn off Low power mode
-    EEPROM.write(controlRegister,MEM_MAP::controlRegisterAddr);         // Write to the EEMPROM
-    snprintf(StartupMessage, sizeof(StartupMessage), "User Button - Detected");
-  }
-
   if(Particle.connected() && verboseMode) Particle.publish("Startup",StartupMessage,PRIVATE);   // Let Particle know how the startup process went
+    Serial.println(StartupMessage);
 }
 
 void loop()
@@ -295,7 +322,7 @@ void loop()
 void sendEvent()
 {
   char data[256];                                                         // Store the date in this character array - not global
-  snprintf(data, sizeof(data), "{\"Temperature\":%4.1f, \"Humidity\":%4.1f, \"Soilmoisture\":%i, \"Battery\":%i, \"Resets\":%i, \"Alerts\":%i}", temperatureInC, relativeHumidity, soilMoisture, stateOfCharge, resetCount, alertCount);
+  snprintf(data, sizeof(data), "{\"Temperature\":%4.1f, \"Humidity\":%4.1f, \"Soilmoisture1\":%i, \"Soilmoisture2\":%i, \"waterPressure\":%i, \"Solenoid\":%i, \"Battery\":%i, \"Resets\":%i, \"Alerts\":%i}", temperatureInC, relativeHumidity, soilMoisture1, soilMoisture2, waterPressure, solenoidState, stateOfCharge, resetCount, alertCount);
   Particle.publish("Rwanda_Irrigation_Hook", data, PRIVATE);
   currentHourlyPeriod = Time.hour();                                      // Change the time period
   dataInFlight = true;                                                    // set the data inflight flag
@@ -330,7 +357,9 @@ bool takeMeasurements() {
   relativeHumidity = sht31.readHumidity();
   snprintf(humidityString,sizeof(humidityString), "%4.1f %%", relativeHumidity);
 
-  soilMoisture = map(analogRead(A0),0,3722,0,100);
+  soilMoisture1 = map(analogRead(soilPin1),0,3722,0,100);             // Sensor puts out 0-3V for 0% to 100% soil moisuture
+  soilMoisture2 = map(analogRead(soilPin2),0,3722,0,100);
+  waterPressure = map(analogRead(pressurePin),428,2816,0,30);         // Sensor range is 0.5V (0 psi) to 4.5V (30psi) and there is a voltage divider (330 / 480) so...
 
   if (Cellular.ready()) getSignalStrength();                          // Test signal strength if the cellular modem is on and ready
   stateOfCharge = int(batteryMonitor.getSoC());                       // Percentage of full charge
@@ -509,6 +538,28 @@ int setLowPowerMode(String command)                                   // This is
   }
   EEPROM.write(MEM_MAP::controlRegisterAddr,controlRegister); // Write it to the register
   return 1;
+}
+
+int setSolenoid(String command) // Function to force sending data in current hour
+{
+  if (command == "1") {                               // Open the water valve
+    digitalWrite(solEnablePin,LOW);                       // Enable the solenoid
+    digitalWrite(solDirection,HIGH);                         // Open the valve
+    Particle.publish("Solenoid","Open the Valve",PRIVATE);
+    return 1;
+  }
+  else if (command == "0") {                          // Disable Solenoid (neither opens or closes)
+    digitalWrite(solEnablePin,HIGH);                       // disable the solenoid
+    Particle.publish("Solenoid","Value Control Disabled",PRIVATE);
+    return 1;
+  }
+  else if (command == "-1") {                         // Close the water valve
+    digitalWrite(solEnablePin,LOW);                       // Enable the solenoid
+    digitalWrite(solDirection,LOW);                         // Open the valve
+    Particle.publish("Solenoid","Close the valve",PRIVATE);
+    return 1;
+  }
+  else return 0;
 }
 
 void publishStateTransition(void)
