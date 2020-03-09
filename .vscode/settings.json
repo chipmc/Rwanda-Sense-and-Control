@@ -3,8 +3,10 @@
     "C_Cpp.default.configurationProvider": "particle.particle-vscode-core",
     "cortex-debug.openocdPath": "${command:particle.getDebuggerOpenocdPath}",
     "files.associations": {
-        "*.ino": "cpp"
+        "*.ino": "cpp",
+        "functional": "cpp"
     },
     "particle.targetPlatform": "boron",
-    "particle.targetDevice": "iDD_HCoE_Dev"
+    "particle.targetDevice": "Rwanda-Dev-002",
+    "particle.firmwareVersion": "1.5.0-rc.2"
 }
