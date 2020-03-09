@@ -11,31 +11,31 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
   3 .backup       00000004  2003f400  000d9820  0000f400  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  4 .data         0000014c  2003e07c  000d9824  0001e07c  2**2
+  4 .data         00000158  2003e074  000d9824  0001e074  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  5 .bss          00000628  2003e1c8  2003e1c8  0002e1c8  2**2
+  5 .bss          00000624  2003e1cc  2003e1cc  0002e1cc  2**2
                   ALLOC
-  6 .module_info_suffix 0000002c  000d9970  000d9970  00029970  2**1
+  6 .module_info_suffix 0000002c  000d997c  000d997c  0002997c  2**1
                   CONTENTS, ALLOC, LOAD, DATA
-  7 .module_info_crc 00000004  000d999c  000d999c  0002999c  2**0
+  7 .module_info_crc 00000004  000d99a8  000d99a8  000299a8  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  8 .debug_info   00101e77  00000000  00000000  000299a0  2**0
+  8 .debug_info   00101e76  00000000  00000000  000299ac  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_abbrev 00014974  00000000  00000000  0012b817  2**0
+  9 .debug_abbrev 00014974  00000000  00000000  0012b822  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    0002227c  00000000  00000000  0014018b  2**0
+ 10 .debug_loc    0002227c  00000000  00000000  00140196  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_aranges 00002d78  00000000  00000000  00162407  2**0
+ 11 .debug_aranges 00002d78  00000000  00000000  00162412  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 00005218  00000000  00000000  0016517f  2**0
+ 12 .debug_ranges 00005218  00000000  00000000  0016518a  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_macro  0003a87b  00000000  00000000  0016a397  2**0
+ 13 .debug_macro  0003a87b  00000000  00000000  0016a3a2  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_line   00032b75  00000000  00000000  001a4c12  2**0
+ 14 .debug_line   00032b74  00000000  00000000  001a4c1d  2**0
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_str    0010a2d5  00000000  00000000  001d7787  2**0
+ 15 .debug_str    0010a2d1  00000000  00000000  001d7791  2**0
                   CONTENTS, READONLY, DEBUGGING
- 16 .debug_frame  0000e6d4  00000000  00000000  002e1a5c  2**2
+ 16 .debug_frame  0000e6d4  00000000  00000000  002e1a64  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -80,10 +80,10 @@ void* module_user_pre_init() {
    d4042:	4801      	ldr	r0, [pc, #4]	; (d4048 <module_user_pre_init+0x28>)
    d4044:	bd08      	pop	{r3, pc}
    d4046:	bf00      	nop
-   d4048:	2003e07c 	.word	0x2003e07c
+   d4048:	2003e074 	.word	0x2003e074
    d404c:	000d9824 	.word	0x000d9824
-   d4050:	2003e1c8 	.word	0x2003e1c8
-   d4054:	2003e1c8 	.word	0x2003e1c8
+   d4050:	2003e1cc 	.word	0x2003e1cc
+   d4054:	2003e1cc 	.word	0x2003e1cc
    d4058:	2003e7f0 	.word	0x2003e7f0
 
 000d405c <module_user_init>:
@@ -126,8 +126,8 @@ void module_user_init()
 }
    d407c:	bd70      	pop	{r4, r5, r6, pc}
    d407e:	bf00      	nop
-   d4080:	000d9818 	.word	0x000d9818
-   d4084:	000d97d8 	.word	0x000d97d8
+   d4080:	000d9814 	.word	0x000d9814
+   d4084:	000d97d4 	.word	0x000d97d4
 
 000d4088 <module_user_setup>:
 
@@ -219,8 +219,8 @@ int measureNow(String command) // Function to force sending data in current hour
   else return 0;
 }
    d40ca:	bd08      	pop	{r3, pc}
-   d40cc:	000d92b8 	.word	0x000d92b8
-   d40d0:	2003e211 	.word	0x2003e211
+   d40cc:	000d92b4 	.word	0x000d92b4
+   d40d0:	2003e216 	.word	0x2003e216
 
 000d40d4 <_ZN11SystemClassD1Ev>:
     system_error_t error_;
@@ -351,9 +351,9 @@ void getSignalStrength()
    d414c:	bd30      	pop	{r4, r5, pc}
    d414e:	bf00      	nop
    d4150:	2003e330 	.word	0x2003e330
-   d4154:	2003e0f0 	.word	0x2003e0f0
+   d4154:	2003e0f4 	.word	0x2003e0f4
    d4158:	000d8e34 	.word	0x000d8e34
-   d415c:	2003e26c 	.word	0x2003e26c
+   d415c:	2003e270 	.word	0x2003e270
 
 000d4160 <_Z16takeMeasurementsv>:
   Particle.publish("Ubidots Hook", responseString, PRIVATE);
@@ -421,7 +421,7 @@ bool takeMeasurements() {
   else current.lightLevel = 0.0;
    d41c0:	2300      	movs	r3, #0
    d41c2:	61f3      	str	r3, [r6, #28]
-  snprintf(lightIntensityString, sizeof(lightIntensityString), "%4.1f lux", current.lightLevel);
+  snprintf(lightLevelString, sizeof(lightLevelString), "%4.1f lux", current.lightLevel);
    d41c4:	69e0      	ldr	r0, [r4, #28]
    d41c6:	4e31      	ldr	r6, [pc, #196]	; (d428c <_Z16takeMeasurementsv+0x12c>)
    d41c8:	f003 fd84 	bl	d7cd4 <__aeabi_f2d>
@@ -535,21 +535,21 @@ bool takeMeasurements() {
    d4284:	bd70      	pop	{r4, r5, r6, pc}
    d4286:	bf00      	nop
    d4288:	2003e30c 	.word	0x2003e30c
-   d428c:	2003e2b4 	.word	0x2003e2b4
-   d4290:	2003e25c 	.word	0x2003e25c
+   d428c:	2003e2b8 	.word	0x2003e2b8
+   d4290:	2003e260 	.word	0x2003e260
    d4294:	000d8e4d 	.word	0x000d8e4d
-   d4298:	2003e1cc 	.word	0x2003e1cc
+   d4298:	2003e1d0 	.word	0x2003e1d0
    d429c:	000d8e55 	.word	0x000d8e55
-   d42a0:	2003e2d8 	.word	0x2003e2d8
-   d42a4:	2003e1e8 	.word	0x2003e1e8
+   d42a0:	2003e2dc 	.word	0x2003e2dc
+   d42a4:	2003e1ec 	.word	0x2003e1ec
    d42a8:	000d8e5e 	.word	0x000d8e5e
-   d42ac:	2003e2f8 	.word	0x2003e2f8
+   d42ac:	2003e2fc 	.word	0x2003e2fc
    d42b0:	2003e330 	.word	0x2003e330
-   d42b4:	2003e208 	.word	0x2003e208
+   d42b4:	2003e20c 	.word	0x2003e20c
    d42b8:	000d8e68 	.word	0x000d8e68
-   d42bc:	2003e2e8 	.word	0x2003e2e8
-   d42c0:	2003e222 	.word	0x2003e222
-   d42c4:	2003e308 	.word	0x2003e308
+   d42bc:	2003e2ec 	.word	0x2003e2ec
+   d42c0:	2003e227 	.word	0x2003e227
+   d42c4:	2003e215 	.word	0x2003e215
 
 000d42c8 <_Z17connectToParticlev>:
   snprintf(SignalString,sizeof(SignalString), "%s S:%2.0f%%, Q:%2.0f%% ", radioTech[rat], strengthPercentage, qualityPercentage);
@@ -888,7 +888,7 @@ void PMICreset() {
    d43fa:	6003      	str	r3, [r0, #0]
    d43fc:	f001 bbc0 	b.w	d5b80 <system_power_management_set_config>
    d4400:	2003e30c 	.word	0x2003e30c
-   d4404:	2003e224 	.word	0x2003e224
+   d4404:	2003e228 	.word	0x2003e228
 
 000d4408 <_Z20meterParticlePublishv>:
   }
@@ -923,7 +923,7 @@ inline system_tick_t millis(void) { return HAL_Timer_Get_Milli_Seconds(); }
    d4424:	2000      	movs	r0, #0
 }
    d4426:	bd10      	pop	{r4, pc}
-   d4428:	2003e2ac 	.word	0x2003e2ac
+   d4428:	2003e2b0 	.word	0x2003e2b0
 
 000d442c <_ZN11SystemClass13waitConditionIZ14UbidotsHandlerPKcS2_EUlvE_EEbT_.isra.36>:
             spark_process();
@@ -1034,7 +1034,7 @@ void fullModemReset() {  // Adapted form Rikkas7's https://github.com/rickkas7/e
    d4490:	b003      	add	sp, #12
    d4492:	bd30      	pop	{r4, r5, pc}
    d4494:	000d8e6e 	.word	0x000d8e6e
-   d4498:	2003e248 	.word	0x2003e248
+   d4498:	2003e24c 	.word	0x2003e24c
 
 000d449c <_ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE0EED1Ev>:
       explicit __shared_count(const __weak_count<_Lp>& __r);
@@ -1141,7 +1141,7 @@ void sendEvent()
    d4510:	a810      	add	r0, sp, #64	; 0x40
    d4512:	f001 fc0f 	bl	d5d34 <snprintf>
    d4516:	4b10      	ldr	r3, [pc, #64]	; (d4558 <_Z9sendEventv+0x90>)
-  Particle.publish("Rwanda-Sense-And-Control-2", data, PRIVATE);
+  Particle.publish("Rwanda-Sense-And-Control", data, PRIVATE);
    d4518:	4910      	ldr	r1, [pc, #64]	; (d455c <_Z9sendEventv+0x94>)
         val_(0) {
 }
@@ -1179,14 +1179,14 @@ inline particle::Flags<TagT, ValueT>::Flags(Flag<TagT, ValueT> flag) :
    d4546:	b050      	add	sp, #320	; 0x140
    d4548:	bd10      	pop	{r4, pc}
    d454a:	bf00      	nop
-   d454c:	2003e2b4 	.word	0x2003e2b4
+   d454c:	2003e2b8 	.word	0x2003e2b8
    d4550:	2003e30c 	.word	0x2003e30c
    d4554:	000d8e7b 	.word	0x000d8e7b
-   d4558:	2003e1e4 	.word	0x2003e1e4
+   d4558:	2003e1e8 	.word	0x2003e1e8
    d455c:	000d8f2a 	.word	0x000d8f2a
-   d4560:	2003e244 	.word	0x2003e244
-   d4564:	2003e0ec 	.word	0x2003e0ec
-   d4568:	2003e1e0 	.word	0x2003e1e0
+   d4560:	2003e248 	.word	0x2003e248
+   d4564:	2003e0f2 	.word	0x2003e0f2
+   d4568:	2003e1e4 	.word	0x2003e1e4
 
 000d456c <_Z14UbidotsHandlerPKcS0_>:
 
@@ -1274,14 +1274,14 @@ void UbidotsHandler(const char *event, const char *data) {            // Looks a
    d45e0:	f001 fba8 	bl	d5d34 <snprintf>
    d45e4:	e7e4      	b.n	d45b0 <_Z14UbidotsHandlerPKcS0_+0x44>
    d45e6:	bf00      	nop
-   d45e8:	000d8f45 	.word	0x000d8f45
-   d45ec:	000d8f5a 	.word	0x000d8f5a
+   d45e8:	000d8f43 	.word	0x000d8f43
+   d45ec:	000d8f58 	.word	0x000d8f58
    d45f0:	2003e30c 	.word	0x2003e30c
-   d45f4:	2003e308 	.word	0x2003e308
-   d45f8:	2003e0ec 	.word	0x2003e0ec
-   d45fc:	2003e1e4 	.word	0x2003e1e4
-   d4600:	000d8f4d 	.word	0x000d8f4d
-   d4604:	000d8f6c 	.word	0x000d8f6c
+   d45f4:	2003e215 	.word	0x2003e215
+   d45f8:	2003e0f2 	.word	0x2003e0f2
+   d45fc:	2003e1e8 	.word	0x2003e1e8
+   d4600:	000d8f4b 	.word	0x000d8f4b
+   d4604:	000d8f6a 	.word	0x000d8f6a
 
 000d4608 <_Z12setSolarMode6String>:
   }
@@ -1350,14 +1350,14 @@ int setSolarMode(String command) // Function to force sending data in current ho
    d4666:	b005      	add	sp, #20
    d4668:	bd30      	pop	{r4, r5, pc}
    d466a:	bf00      	nop
-   d466c:	000d92b8 	.word	0x000d92b8
+   d466c:	000d92b4 	.word	0x000d92b4
    d4670:	2003e30c 	.word	0x2003e30c
-   d4674:	2003e308 	.word	0x2003e308
-   d4678:	2003e1e4 	.word	0x2003e1e4
-   d467c:	000d8f89 	.word	0x000d8f89
-   d4680:	000d8fa0 	.word	0x000d8fa0
-   d4684:	000d8fa2 	.word	0x000d8fa2
-   d4688:	000d8fb8 	.word	0x000d8fb8
+   d4674:	2003e215 	.word	0x2003e215
+   d4678:	2003e1e8 	.word	0x2003e1e8
+   d467c:	000d8f87 	.word	0x000d8f87
+   d4680:	000d8f9e 	.word	0x000d8f9e
+   d4684:	000d8fa0 	.word	0x000d8fa0
+   d4688:	000d8fb6 	.word	0x000d8fb6
 
 000d468c <_Z14setSoilSensors6String>:
     System.setPowerConfiguration(conf);
@@ -1458,16 +1458,16 @@ int setSoilSensors (String command) // Function to force sending data in current
 }
    d4704:	b004      	add	sp, #16
    d4706:	bd70      	pop	{r4, r5, r6, pc}
-   d4708:	000d8fa0 	.word	0x000d8fa0
+   d4708:	000d8f9e 	.word	0x000d8f9e
    d470c:	2003e30c 	.word	0x2003e30c
-   d4710:	2003e308 	.word	0x2003e308
-   d4714:	2003e1e4 	.word	0x2003e1e4
-   d4718:	000d8fbd 	.word	0x000d8fbd
-   d471c:	000d92b8 	.word	0x000d92b8
-   d4720:	000d8fcd 	.word	0x000d8fcd
-   d4724:	000d8f43 	.word	0x000d8f43
-   d4728:	000d8fdd 	.word	0x000d8fdd
-   d472c:	000d8fb8 	.word	0x000d8fb8
+   d4710:	2003e215 	.word	0x2003e215
+   d4714:	2003e1e8 	.word	0x2003e1e8
+   d4718:	000d8fbb 	.word	0x000d8fbb
+   d471c:	000d92b4 	.word	0x000d92b4
+   d4720:	000d8fcb 	.word	0x000d8fcb
+   d4724:	000d921a 	.word	0x000d921a
+   d4728:	000d8fdb 	.word	0x000d8fdb
+   d472c:	000d8fb6 	.word	0x000d8fb6
 
 000d4730 <_Z17setPressureSensor6String>:
 
@@ -1543,14 +1543,14 @@ int setPressureSensor (String command) // Function to force sending data in curr
 }
    d4788:	b005      	add	sp, #20
    d478a:	bd30      	pop	{r4, r5, pc}
-   d478c:	000d8fa0 	.word	0x000d8fa0
+   d478c:	000d8f9e 	.word	0x000d8f9e
    d4790:	2003e30c 	.word	0x2003e30c
-   d4794:	000d8fb8 	.word	0x000d8fb8
-   d4798:	2003e308 	.word	0x2003e308
-   d479c:	2003e1e4 	.word	0x2003e1e4
-   d47a0:	000d8fee 	.word	0x000d8fee
-   d47a4:	000d92b8 	.word	0x000d92b8
-   d47a8:	000d9001 	.word	0x000d9001
+   d4794:	000d8fb6 	.word	0x000d8fb6
+   d4798:	2003e215 	.word	0x2003e215
+   d479c:	2003e1e8 	.word	0x2003e1e8
+   d47a0:	000d8fec 	.word	0x000d8fec
+   d47a4:	000d92b4 	.word	0x000d92b4
+   d47a8:	000d8fff 	.word	0x000d8fff
 
 000d47ac <_Z14setLightSensor6String>:
 
@@ -1626,15 +1626,15 @@ int setLightSensor (String command) // Function to force sending data in current
 }
    d4810:	b005      	add	sp, #20
    d4812:	bd30      	pop	{r4, r5, pc}
-   d4814:	000d8fa0 	.word	0x000d8fa0
+   d4814:	000d8f9e 	.word	0x000d8f9e
    d4818:	2003e30c 	.word	0x2003e30c
-   d481c:	2003e308 	.word	0x2003e308
-   d4820:	2003e1e4 	.word	0x2003e1e4
-   d4824:	000d9019 	.word	0x000d9019
-   d4828:	000d92b8 	.word	0x000d92b8
-   d482c:	2003e1e8 	.word	0x2003e1e8
-   d4830:	000d9029 	.word	0x000d9029
-   d4834:	000d8fb8 	.word	0x000d8fb8
+   d481c:	2003e215 	.word	0x2003e215
+   d4820:	2003e1e8 	.word	0x2003e1e8
+   d4824:	000d9017 	.word	0x000d9017
+   d4828:	000d92b4 	.word	0x000d92b4
+   d482c:	2003e1ec 	.word	0x2003e1ec
+   d4830:	000d9027 	.word	0x000d9027
+   d4834:	000d8fb6 	.word	0x000d8fb6
 
 000d4838 <_Z18setSolenoidPresent6String>:
 
@@ -1713,16 +1713,16 @@ int setSolenoidPresent (String command) // Function to force sending data in cur
    d48a2:	b004      	add	sp, #16
    d48a4:	bd10      	pop	{r4, pc}
    d48a6:	bf00      	nop
-   d48a8:	000d903e 	.word	0x000d903e
-   d48ac:	000d9042 	.word	0x000d9042
-   d48b0:	000d9049 	.word	0x000d9049
-   d48b4:	000d9046 	.word	0x000d9046
+   d48a8:	000d903c 	.word	0x000d903c
+   d48ac:	000d9040 	.word	0x000d9040
+   d48b0:	000d9047 	.word	0x000d9047
+   d48b4:	000d9044 	.word	0x000d9044
    d48b8:	2003e30c 	.word	0x2003e30c
-   d48bc:	2003e308 	.word	0x2003e308
-   d48c0:	2003e1e4 	.word	0x2003e1e4
-   d48c4:	000d904f 	.word	0x000d904f
-   d48c8:	000d904c 	.word	0x000d904c
-   d48cc:	000d8fb8 	.word	0x000d8fb8
+   d48bc:	2003e215 	.word	0x2003e215
+   d48c0:	2003e1e8 	.word	0x2003e1e8
+   d48c4:	000d904d 	.word	0x000d904d
+   d48c8:	000d904a 	.word	0x000d904a
+   d48cc:	000d8fb6 	.word	0x000d8fb6
 
 000d48d0 <_Z14setVerboseMode6String>:
 
@@ -1792,14 +1792,14 @@ int setVerboseMode(String command) // Function to force sending data in current 
    d4926:	b005      	add	sp, #20
    d4928:	bd30      	pop	{r4, r5, pc}
    d492a:	bf00      	nop
-   d492c:	000d92b8 	.word	0x000d92b8
+   d492c:	000d92b4 	.word	0x000d92b4
    d4930:	2003e30c 	.word	0x2003e30c
-   d4934:	2003e308 	.word	0x2003e308
-   d4938:	2003e1e4 	.word	0x2003e1e4
-   d493c:	000d9061 	.word	0x000d9061
-   d4940:	000d8fa0 	.word	0x000d8fa0
-   d4944:	000d9072 	.word	0x000d9072
-   d4948:	000d8fb8 	.word	0x000d8fb8
+   d4934:	2003e215 	.word	0x2003e215
+   d4938:	2003e1e8 	.word	0x2003e1e8
+   d493c:	000d905f 	.word	0x000d905f
+   d4940:	000d8f9e 	.word	0x000d8f9e
+   d4944:	000d9070 	.word	0x000d9070
+   d4948:	000d8fb6 	.word	0x000d8fb6
 
 000d494c <_Z15setLowPowerMode6String>:
 
@@ -1923,14 +1923,14 @@ int setLowPowerMode(String command)                                   // This is
    d49e6:	b005      	add	sp, #20
    d49e8:	bd30      	pop	{r4, r5, pc}
    d49ea:	bf00      	nop
-   d49ec:	000d92b8 	.word	0x000d92b8
-   d49f0:	000d8fa0 	.word	0x000d8fa0
+   d49ec:	000d92b4 	.word	0x000d92b4
+   d49f0:	000d8f9e 	.word	0x000d8f9e
    d49f4:	2003e30c 	.word	0x2003e30c
-   d49f8:	2003e308 	.word	0x2003e308
-   d49fc:	2003e1e4 	.word	0x2003e1e4
-   d4a00:	000d8fb8 	.word	0x000d8fb8
-   d4a04:	000d9087 	.word	0x000d9087
-   d4a08:	000d9091 	.word	0x000d9091
+   d49f8:	2003e215 	.word	0x2003e215
+   d49fc:	2003e1e8 	.word	0x2003e1e8
+   d4a00:	000d8fb6 	.word	0x000d8fb6
+   d4a04:	000d9085 	.word	0x000d9085
+   d4a08:	000d908f 	.word	0x000d908f
 
 000d4a0c <_Z11contolValve6String>:
 
@@ -2008,13 +2008,13 @@ int contolValve(String command)                                   // Function to
    d4a8e:	b005      	add	sp, #20
    d4a90:	bd30      	pop	{r4, r5, pc}
    d4a92:	bf00      	nop
-   d4a94:	000d90a3 	.word	0x000d90a3
+   d4a94:	000d90a1 	.word	0x000d90a1
    d4a98:	2003e30c 	.word	0x2003e30c
-   d4a9c:	2003e1e4 	.word	0x2003e1e4
-   d4aa0:	000d90a6 	.word	0x000d90a6
-   d4aa4:	000d90be 	.word	0x000d90be
-   d4aa8:	000d90c2 	.word	0x000d90c2
-   d4aac:	000d90b5 	.word	0x000d90b5
+   d4a9c:	2003e1e8 	.word	0x2003e1e8
+   d4aa0:	000d90a4 	.word	0x000d90a4
+   d4aa4:	000d90bc 	.word	0x000d90bc
+   d4aa8:	000d90c0 	.word	0x000d90c0
+   d4aac:	000d90b3 	.word	0x000d90b3
 
 000d4ab0 <_Z17setHoldTimeMillis6String>:
 
@@ -2099,11 +2099,11 @@ int setHoldTimeMillis(String command)                                       // T
    d4b10:	bd30      	pop	{r4, r5, pc}
    d4b12:	bf00      	nop
    d4b14:	2003e30c 	.word	0x2003e30c
-   d4b18:	2003e308 	.word	0x2003e308
-   d4b1c:	000d90d2 	.word	0x000d90d2
-   d4b20:	2003e212 	.word	0x2003e212
-   d4b24:	2003e1e4 	.word	0x2003e1e4
-   d4b28:	000d925c 	.word	0x000d925c
+   d4b18:	2003e215 	.word	0x2003e215
+   d4b1c:	000d90d0 	.word	0x000d90d0
+   d4b20:	2003e217 	.word	0x2003e217
+   d4b24:	2003e1e8 	.word	0x2003e1e8
+   d4b28:	000d9258 	.word	0x000d9258
 
 000d4b2c <_Z22publishStateTransitionv>:
 
@@ -2162,12 +2162,12 @@ void publishStateTransition(void)
    d4b82:	b00f      	add	sp, #60	; 0x3c
    d4b84:	bd30      	pop	{r4, r5, pc}
    d4b86:	bf00      	nop
-   d4b88:	2003e211 	.word	0x2003e211
-   d4b8c:	2003e210 	.word	0x2003e210
-   d4b90:	2003e07c 	.word	0x2003e07c
-   d4b94:	000d90da 	.word	0x000d90da
-   d4b98:	2003e1e4 	.word	0x2003e1e4
-   d4b9c:	000d90e8 	.word	0x000d90e8
+   d4b88:	2003e216 	.word	0x2003e216
+   d4b8c:	2003e214 	.word	0x2003e214
+   d4b90:	2003e074 	.word	0x2003e074
+   d4b94:	000d90d8 	.word	0x000d90d8
+   d4b98:	2003e1e8 	.word	0x2003e1e8
+   d4b9c:	000d90e6 	.word	0x000d90e6
 
 000d4ba0 <loop>:
 
@@ -2457,7 +2457,7 @@ void loop()
         waitUntil(meterParticlePublish);
    d4d62:	f7ff fb63 	bl	d442c <_ZN11SystemClass13waitConditionIZ14UbidotsHandlerPKcS2_EUlvE_EEbT_.isra.36>
    d4d66:	4b2a      	ldr	r3, [pc, #168]	; (d4e10 <loop+0x270>)
-        Particle.publish("State","Going to Sleep",PRIVATE);
+        Particle.publish("State","Taking a Nap",PRIVATE);
    d4d68:	492b      	ldr	r1, [pc, #172]	; (d4e18 <loop+0x278>)
    d4d6a:	781b      	ldrb	r3, [r3, #0]
 }
@@ -2528,26 +2528,26 @@ inline particle::Flags<TagT, ValueT>::Flags() :
     state = IDLE_STATE;                                                 // Awake now, we need to go back to the IDLE state for next tasking
    d4de0:	2302      	movs	r3, #2
    d4de2:	e759      	b.n	d4c98 <loop+0xf8>
-   d4de4:	2003e211 	.word	0x2003e211
+   d4de4:	2003e216 	.word	0x2003e216
    d4de8:	2003e30c 	.word	0x2003e30c
-   d4dec:	2003e210 	.word	0x2003e210
-   d4df0:	2003e308 	.word	0x2003e308
-   d4df4:	2003e222 	.word	0x2003e222
-   d4df8:	2003e2b4 	.word	0x2003e2b4
-   d4dfc:	2003e268 	.word	0x2003e268
+   d4dec:	2003e214 	.word	0x2003e214
+   d4df0:	2003e215 	.word	0x2003e215
+   d4df4:	2003e227 	.word	0x2003e227
+   d4df8:	2003e2b8 	.word	0x2003e2b8
+   d4dfc:	2003e26c 	.word	0x2003e26c
    d4e00:	00015f90 	.word	0x00015f90
-   d4e04:	2003e244 	.word	0x2003e244
-   d4e08:	2003e1dc 	.word	0x2003e1dc
-   d4e0c:	2003e2b0 	.word	0x2003e2b0
-   d4e10:	2003e1e4 	.word	0x2003e1e4
-   d4e14:	000d918b 	.word	0x000d918b
-   d4e18:	000d9121 	.word	0x000d9121
-   d4e1c:	2003e0ec 	.word	0x2003e0ec
-   d4e20:	2003e1e0 	.word	0x2003e1e0
-   d4e24:	000d90f9 	.word	0x000d90f9
+   d4e04:	2003e248 	.word	0x2003e248
+   d4e08:	2003e1e0 	.word	0x2003e1e0
+   d4e0c:	2003e2b4 	.word	0x2003e2b4
+   d4e10:	2003e1e8 	.word	0x2003e1e8
+   d4e14:	000d9187 	.word	0x000d9187
+   d4e18:	000d911d 	.word	0x000d911d
+   d4e1c:	2003e0f2 	.word	0x2003e0f2
+   d4e20:	2003e1e4 	.word	0x2003e1e4
+   d4e24:	000d90f7 	.word	0x000d90f7
    d4e28:	000d8e7a 	.word	0x000d8e7a
-   d4e2c:	000d9112 	.word	0x000d9112
-   d4e30:	2003e248 	.word	0x2003e248
+   d4e2c:	000d9110 	.word	0x000d9110
+   d4e30:	2003e24c 	.word	0x2003e24c
     } break;
 
   case LOW_BATTERY_STATE: {                                             // Sleep state but leaves the fuel gauge on
@@ -2763,15 +2763,15 @@ inline particle::Flags<TagT, ValueT>::Flags(Flag<TagT, ValueT> flag) :
    d4fa4:	bd70      	pop	{r4, r5, r6, pc}
    d4fa6:	bf00      	nop
    d4fa8:	2003e30c 	.word	0x2003e30c
-   d4fac:	2003e210 	.word	0x2003e210
-   d4fb0:	2003e1e4 	.word	0x2003e1e4
-   d4fb4:	000d9121 	.word	0x000d9121
-   d4fb8:	000d9127 	.word	0x000d9127
-   d4fbc:	2003e248 	.word	0x2003e248
-   d4fc0:	2003e2b0 	.word	0x2003e2b0
-   d4fc4:	000d913e 	.word	0x000d913e
-   d4fc8:	000d9152 	.word	0x000d9152
-   d4fcc:	000d916c 	.word	0x000d916c
+   d4fac:	2003e214 	.word	0x2003e214
+   d4fb0:	2003e1e8 	.word	0x2003e1e8
+   d4fb4:	000d911d 	.word	0x000d911d
+   d4fb8:	000d9123 	.word	0x000d9123
+   d4fbc:	2003e24c 	.word	0x2003e24c
+   d4fc0:	2003e2b4 	.word	0x2003e2b4
+   d4fc4:	000d913a 	.word	0x000d913a
+   d4fc8:	000d914e 	.word	0x000d914e
+   d4fcc:	000d9168 	.word	0x000d9168
 
 000d4fd0 <_ZN10CloudClass8variableIA9_cIRA16_cEEEbRKT_DpOT0_>:
         return _variable(varKey, (const char*)userVar, userVarType);
@@ -3043,7 +3043,7 @@ __STATIC_INLINE void nrf_gpio_port_out_set(NRF_GPIO_Type * p_reg, uint32_t set_m
    d5132:	497a      	ldr	r1, [pc, #488]	; (d531c <setup+0x330>)
    d5134:	487a      	ldr	r0, [pc, #488]	; (d5320 <setup+0x334>)
    d5136:	f7ff ff4b 	bl	d4fd0 <_ZN10CloudClass8variableIA9_cIRA16_cEEEbRKT_DpOT0_>
-  Particle.variable("Luminosity",lightIntensityString);
+  Particle.variable("Luminosity",lightLevelString);
    d513a:	497a      	ldr	r1, [pc, #488]	; (d5324 <setup+0x338>)
    d513c:	487a      	ldr	r0, [pc, #488]	; (d5328 <setup+0x33c>)
    d513e:	f7ff ff47 	bl	d4fd0 <_ZN10CloudClass8variableIA9_cIRA16_cEEEbRKT_DpOT0_>
@@ -3375,64 +3375,64 @@ __STATIC_INLINE void nrf_gpio_port_out_set(NRF_GPIO_Type * p_reg, uint32_t set_m
    d52ca:	b039      	add	sp, #228	; 0xe4
    d52cc:	e8bd 83f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, pc}
    d52d0:	000d8df0 	.word	0x000d8df0
-   d52d4:	2003e211 	.word	0x2003e211
-   d52d8:	2003e258 	.word	0x2003e258
+   d52d4:	2003e216 	.word	0x2003e216
+   d52d8:	2003e25c 	.word	0x2003e25c
    d52dc:	000d57b5 	.word	0x000d57b5
    d52e0:	50000300 	.word	0x50000300
    d52e4:	2003e30c 	.word	0x2003e30c
    d52e8:	000d456d 	.word	0x000d456d
-   d52ec:	2003e26c 	.word	0x2003e26c
-   d52f0:	000d91a5 	.word	0x000d91a5
-   d52f4:	000d91ac 	.word	0x000d91ac
-   d52f8:	000d9303 	.word	0x000d9303
-   d52fc:	000d91b7 	.word	0x000d91b7
-   d5300:	2003e2e8 	.word	0x2003e2e8
-   d5304:	000d91bf 	.word	0x000d91bf
-   d5308:	2003e1f0 	.word	0x2003e1f0
-   d530c:	000d91ca 	.word	0x000d91ca
-   d5310:	000d91d7 	.word	0x000d91d7
-   d5314:	2003e1cc 	.word	0x2003e1cc
-   d5318:	000d91e4 	.word	0x000d91e4
-   d531c:	2003e2d8 	.word	0x2003e2d8
-   d5320:	000d91f0 	.word	0x000d91f0
-   d5324:	2003e2f8 	.word	0x2003e2f8
-   d5328:	000d91f9 	.word	0x000d91f9
-   d532c:	2003e2b4 	.word	0x2003e2b4
-   d5330:	000d9204 	.word	0x000d9204
-   d5334:	2003e2b8 	.word	0x2003e2b8
-   d5338:	000d9212 	.word	0x000d9212
-   d533c:	2003e2bc 	.word	0x2003e2bc
-   d5340:	000d9220 	.word	0x000d9220
-   d5344:	2003e212 	.word	0x2003e212
-   d5348:	000d925c 	.word	0x000d925c
+   d52ec:	2003e270 	.word	0x2003e270
+   d52f0:	000d91a1 	.word	0x000d91a1
+   d52f4:	000d91a8 	.word	0x000d91a8
+   d52f8:	000d92ff 	.word	0x000d92ff
+   d52fc:	000d91b3 	.word	0x000d91b3
+   d5300:	2003e2ec 	.word	0x2003e2ec
+   d5304:	000d91bb 	.word	0x000d91bb
+   d5308:	2003e1f4 	.word	0x2003e1f4
+   d530c:	000d91c6 	.word	0x000d91c6
+   d5310:	000d91d3 	.word	0x000d91d3
+   d5314:	2003e1d0 	.word	0x2003e1d0
+   d5318:	000d91e0 	.word	0x000d91e0
+   d531c:	2003e2dc 	.word	0x2003e2dc
+   d5320:	000d91ec 	.word	0x000d91ec
+   d5324:	2003e2fc 	.word	0x2003e2fc
+   d5328:	000d91f5 	.word	0x000d91f5
+   d532c:	2003e2b8 	.word	0x2003e2b8
+   d5330:	000d9200 	.word	0x000d9200
+   d5334:	2003e2bc 	.word	0x2003e2bc
+   d5338:	000d920e 	.word	0x000d920e
+   d533c:	2003e2c0 	.word	0x2003e2c0
+   d5340:	000d921c 	.word	0x000d921c
+   d5344:	2003e217 	.word	0x2003e217
+   d5348:	000d9258 	.word	0x000d9258
    d534c:	000d40b9 	.word	0x000d40b9
-   d5350:	000d9229 	.word	0x000d9229
+   d5350:	000d9225 	.word	0x000d9225
    d5354:	000d494d 	.word	0x000d494d
    d5358:	000d4609 	.word	0x000d4609
-   d535c:	000d9235 	.word	0x000d9235
+   d535c:	000d9231 	.word	0x000d9231
    d5360:	000d48d1 	.word	0x000d48d1
-   d5364:	000d9240 	.word	0x000d9240
+   d5364:	000d923c 	.word	0x000d923c
    d5368:	000d4a0d 	.word	0x000d4a0d
-   d536c:	000d924d 	.word	0x000d924d
+   d536c:	000d9249 	.word	0x000d9249
    d5370:	000d4ab1 	.word	0x000d4ab1
-   d5374:	000d9259 	.word	0x000d9259
+   d5374:	000d9255 	.word	0x000d9255
    d5378:	000d468d 	.word	0x000d468d
-   d537c:	000d9265 	.word	0x000d9265
+   d537c:	000d9261 	.word	0x000d9261
    d5380:	000d4731 	.word	0x000d4731
-   d5384:	000d9274 	.word	0x000d9274
+   d5384:	000d9270 	.word	0x000d9270
    d5388:	000d47ad 	.word	0x000d47ad
-   d538c:	000d9286 	.word	0x000d9286
+   d538c:	000d9282 	.word	0x000d9282
    d5390:	000d4839 	.word	0x000d4839
-   d5394:	000d9295 	.word	0x000d9295
-   d5398:	2003e25c 	.word	0x2003e25c
-   d539c:	000d92a5 	.word	0x000d92a5
+   d5394:	000d9291 	.word	0x000d9291
+   d5398:	2003e260 	.word	0x2003e260
+   d539c:	000d92a1 	.word	0x000d92a1
    d53a0:	000d8e30 	.word	0x000d8e30
-   d53a4:	2003e1e8 	.word	0x2003e1e8
-   d53a8:	000d90d2 	.word	0x000d90d2
-   d53ac:	2003e1dc 	.word	0x2003e1dc
-   d53b0:	2003e2b0 	.word	0x2003e2b0
-   d53b4:	000d92ba 	.word	0x000d92ba
-   d53b8:	2003e308 	.word	0x2003e308
+   d53a4:	2003e1ec 	.word	0x2003e1ec
+   d53a8:	000d90d0 	.word	0x000d90d0
+   d53ac:	2003e1e0 	.word	0x2003e1e0
+   d53b0:	2003e2b4 	.word	0x2003e2b4
+   d53b4:	000d92b6 	.word	0x000d92b6
+   d53b8:	2003e215 	.word	0x2003e215
    d53bc:	4b06      	ldr	r3, [pc, #24]	; (d53d8 <setup+0x3ec>)
     state = ERROR_STATE;                                                // We failed to connect can reset here or go to the ERROR state for remediation
     resetTimeStamp = millis();
@@ -3456,8 +3456,8 @@ inline particle::Flags<TagT, ValueT>::Flags() :
    d53d0:	a803      	add	r0, sp, #12
    d53d2:	f7ff f863 	bl	d449c <_ZNSt14__shared_countILN9__gnu_cxx12_Lock_policyE0EED1Ev>
    d53d6:	e76d      	b.n	d52b4 <setup+0x2c8>
-   d53d8:	2003e1e4 	.word	0x2003e1e4
-   d53dc:	000d92cc 	.word	0x000d92cc
+   d53d8:	2003e1e8 	.word	0x2003e1e8
+   d53dc:	000d92c8 	.word	0x000d92c8
 
 000d53e0 <_GLOBAL__sub_I___appProductID>:
 	// 16:MT silent reset (with detach from network and saving of NVM parameters), with reset of the SIM card
@@ -3481,9 +3481,9 @@ public:
             : wakeupSource_(nullptr),
               error_(SYSTEM_ERROR_NONE) {
    d53e4:	4d28      	ldr	r5, [pc, #160]	; (d5488 <_GLOBAL__sub_I___appProductID+0xa8>)
+#include "adafruit-sht31.h"
 #include "DevicePinoutdoc.h"
 #include "BH1750.h"
-
 
 // Prototypes and System Mode calls
 SYSTEM_MODE(SEMI_AUTOMATIC);                        // This will enable user code to start executing automatically.
@@ -3564,8 +3564,8 @@ SYSTEM_THREAD(ENABLED);                             // Means my code will not be
 STARTUP(System.enableFeature(FEATURE_RESET_INFO));
 FuelGauge batteryMonitor;                           // Prototype for the fuel gauge (included in Particle core library)
    d5436:	4d19      	ldr	r5, [pc, #100]	; (d549c <_GLOBAL__sub_I___appProductID+0xbc>)
+#include "DevicePinoutdoc.h"
 #include "BH1750.h"
-
 
 // Prototypes and System Mode calls
 SYSTEM_MODE(SEMI_AUTOMATIC);                        // This will enable user code to start executing automatically.
@@ -3629,17 +3629,17 @@ BH1750 lightSensor(0x23, Wire);                          // Light sensor measure
    d547c:	480b      	ldr	r0, [pc, #44]	; (d54ac <_GLOBAL__sub_I___appProductID+0xcc>)
    d547e:	f000 b8f1 	b.w	d5664 <_ZN6BH1750C1EhR7TwoWire>
    d5482:	bf00      	nop
-   d5484:	2003e248 	.word	0x2003e248
-   d5488:	2003e24c 	.word	0x2003e24c
-   d548c:	2003e1c8 	.word	0x2003e1c8
-   d5490:	2003e1e4 	.word	0x2003e1e4
-   d5494:	2003e258 	.word	0x2003e258
+   d5484:	2003e24c 	.word	0x2003e24c
+   d5488:	2003e250 	.word	0x2003e250
+   d548c:	2003e1cc 	.word	0x2003e1cc
+   d5490:	2003e1e8 	.word	0x2003e1e8
+   d5494:	2003e25c 	.word	0x2003e25c
    d5498:	000d40d5 	.word	0x000d40d5
-   d549c:	2003e208 	.word	0x2003e208
-   d54a0:	2003e224 	.word	0x2003e224
+   d549c:	2003e20c 	.word	0x2003e20c
+   d54a0:	2003e228 	.word	0x2003e228
    d54a4:	000d66fb 	.word	0x000d66fb
-   d54a8:	2003e25c 	.word	0x2003e25c
-   d54ac:	2003e1e8 	.word	0x2003e1e8
+   d54a8:	2003e260 	.word	0x2003e260
+   d54ac:	2003e1ec 	.word	0x2003e1ec
 
 000d54b0 <_ZN7TwoWire5writeEi>:
   bool unlock();
@@ -5724,7 +5724,7 @@ public:
    d5e9a:	4620      	mov	r0, r4
    d5e9c:	b009      	add	sp, #36	; 0x24
    d5e9e:	bdf0      	pop	{r4, r5, r6, r7, pc}
-   d5ea0:	000d9348 	.word	0x000d9348
+   d5ea0:	000d9344 	.word	0x000d9344
 
 000d5ea4 <_GLOBAL__sub_I__ZN5spark13CellularClass4RSSIEv>:
         return (band_get.ok = true);
@@ -5771,7 +5771,7 @@ public:
    d5ec6:	bd38      	pop	{r3, r4, r5, pc}
    d5ec8:	2003e338 	.word	0x2003e338
    d5ecc:	2003e330 	.word	0x2003e330
-   d5ed0:	000d9314 	.word	0x000d9314
+   d5ed0:	000d9310 	.word	0x000d9310
 
 000d5ed4 <_ZN14CellularSignalD1Ev>:
     CellularSignal(const cellular_signal_t& sig);
@@ -6589,7 +6589,7 @@ public:
 	}
    d61d0:	4620      	mov	r0, r4
    d61d2:	bd38      	pop	{r3, r4, r5, pc}
-   d61d4:	000d937c 	.word	0x000d937c
+   d61d4:	000d9378 	.word	0x000d9378
 
 000d61d8 <_ZNKSt8functionIFvRKN8particle5ErrorEEEclES3_>:
   template<typename _Res, typename... _ArgTypes>
@@ -7966,7 +7966,7 @@ public:
    d66b8:	601a      	str	r2, [r3, #0]
    d66ba:	4770      	bx	lr
    d66bc:	2003e360 	.word	0x2003e360
-   d66c0:	000d9398 	.word	0x000d9398
+   d66c0:	000d9394 	.word	0x000d9394
 
 000d66c4 <_ZN9FuelGauge4lockEv>:
     i2c_.write(LSB);
@@ -8364,7 +8364,7 @@ TwoWire::TwoWire(HAL_I2C_Interface i2c, const HAL_I2C_Config& conf)
 }
    d681c:	4620      	mov	r0, r4
    d681e:	bd10      	pop	{r4, pc}
-   d6820:	000d93cc 	.word	0x000d93cc
+   d6820:	000d93c8 	.word	0x000d93c8
 
 000d6824 <_ZN7TwoWire5beginEv>:
   HAL_I2C_Stretch_Clock(_i2c, stretch, NULL);
@@ -8733,7 +8733,7 @@ IPAddress::IPAddress()
    d696a:	4620      	mov	r0, r4
    d696c:	bd10      	pop	{r4, pc}
    d696e:	bf00      	nop
-   d6970:	000d93f4 	.word	0x000d93f4
+   d6970:	000d93f0 	.word	0x000d93f0
 
 000d6974 <_ZN9IPAddressC1ERK16_HAL_IPAddress_t>:
 
@@ -8753,7 +8753,7 @@ IPAddress::IPAddress(const HAL_IPAddress& address)
    d6990:	701a      	strb	r2, [r3, #0]
 }
    d6992:	bd10      	pop	{r4, pc}
-   d6994:	000d93f4 	.word	0x000d93f4
+   d6994:	000d93f0 	.word	0x000d93f0
 
 000d6998 <_ZN9IPAddress8set_ipv4Ehhhh>:
     return address.ipv4!=0;
@@ -8811,7 +8811,7 @@ inline spark::Logger::Logger(const char *name) :
    d69cc:	601a      	str	r2, [r3, #0]
    d69ce:	4770      	bx	lr
    d69d0:	2003e368 	.word	0x2003e368
-   d69d4:	000d9470 	.word	0x000d9470
+   d69d4:	000d946c 	.word	0x000d946c
 
 000d69d8 <_ZN5spark9MeshClass9listeningEv>:
     uint16_t getListenTimeout(void) {
@@ -9153,7 +9153,7 @@ class MeshClass : public NetworkClass, public MeshPublish {
    d6ae2:	4620      	mov	r0, r4
    d6ae4:	bd38      	pop	{r3, r4, r5, pc}
    d6ae6:	bf00      	nop
-   d6ae8:	000d94e0 	.word	0x000d94e0
+   d6ae8:	000d94dc 	.word	0x000d94dc
 
 000d6aec <_GLOBAL__sub_I__ZN5spark11MeshPublish13Subscriptions20event_handler_existsEPKcPFvS3_S3_EPvN17SubscriptionScope4EnumES3_>:
 
@@ -9227,9 +9227,9 @@ MeshClass Mesh;
    d6b22:	f000 be07 	b.w	d7734 <__aeabi_atexit>
    d6b26:	bf00      	nop
    d6b28:	2003e36c 	.word	0x2003e36c
-   d6b2c:	000d9514 	.word	0x000d9514
-   d6b30:	000d94e0 	.word	0x000d94e0
-   d6b34:	2003e1c8 	.word	0x2003e1c8
+   d6b2c:	000d9510 	.word	0x000d9510
+   d6b30:	000d94dc 	.word	0x000d94dc
+   d6b34:	2003e1cc 	.word	0x2003e1cc
    d6b38:	000d6ab5 	.word	0x000d6ab5
 
 000d6b3c <_ZN5spark12NetworkClass7connectEj>:
@@ -9533,7 +9533,7 @@ class IPAddress : public Printable {
    d6c78:	605a      	str	r2, [r3, #4]
    d6c7a:	4770      	bx	lr
    d6c7c:	2003e540 	.word	0x2003e540
-   d6c80:	000d9514 	.word	0x000d9514
+   d6c80:	000d9510 	.word	0x000d9510
 
 000d6c84 <_ZN5Print5writeEPKhj>:
 
@@ -9796,7 +9796,7 @@ RGBClass RGB;
    d6d5a:	f000 bceb 	b.w	d7734 <__aeabi_atexit>
    d6d5e:	bf00      	nop
    d6d60:	2003e548 	.word	0x2003e548
-   d6d64:	2003e1c8 	.word	0x2003e1c8
+   d6d64:	2003e1cc 	.word	0x2003e1cc
    d6d68:	000d6d43 	.word	0x000d6d43
 
 000d6d6c <_ZN8SPIClassD1Ev>:
@@ -9839,7 +9839,7 @@ SPIClass::SPIClass(HAL_SPI_Interface spi)
 }
    d6d90:	4620      	mov	r0, r4
    d6d92:	bd10      	pop	{r4, pc}
-   d6d94:	000d9548 	.word	0x000d9548
+   d6d94:	000d9544 	.word	0x000d9544
 
 000d6d98 <_ZN8SPIClass9isEnabledEv>:
 bool SPIClass::isEnabled()
@@ -10659,7 +10659,7 @@ SystemClass System;
    d7076:	f000 bb5d 	b.w	d7734 <__aeabi_atexit>
    d707a:	bf00      	nop
    d707c:	2003e558 	.word	0x2003e558
-   d7080:	2003e1c8 	.word	0x2003e1c8
+   d7080:	2003e1cc 	.word	0x2003e1cc
    d7084:	000d40d5 	.word	0x000d40d5
 
 000d7088 <_ZL22Refresh_UnixTime_Cachel>:
@@ -10971,7 +10971,7 @@ const char* TimeClass::format_spec = TIME_FORMAT_DEFAULT;
    d7186:	601a      	str	r2, [r3, #0]
    d7188:	4770      	bx	lr
    d718a:	bf00      	nop
-   d718c:	2003e110 	.word	0x2003e110
+   d718c:	2003e114 	.word	0x2003e114
    d7190:	2003e588 	.word	0x2003e588
 
 000d7194 <_ZN11USARTSerialD1Ev>:
@@ -11154,7 +11154,7 @@ USARTSerial::USARTSerial(HAL_USART_Serial serial, Ring_Buffer *rx_buffer, Ring_B
    d723a:	4620      	mov	r0, r4
    d723c:	bd10      	pop	{r4, pc}
    d723e:	bf00      	nop
-   d7240:	000d9580 	.word	0x000d9580
+   d7240:	000d957c 	.word	0x000d957c
 
 000d7244 <_ZN11USARTSerial9isEnabledEv>:
 USARTSerial::operator bool() {
@@ -11207,7 +11207,7 @@ USARTSerial& __fetch_global_Serial1()
    d7284:	2003e634 	.word	0x2003e634
    d7288:	2003e5ac 	.word	0x2003e5ac
    d728c:	2003e598 	.word	0x2003e598
-   d7290:	2003e1c8 	.word	0x2003e1c8
+   d7290:	2003e1cc 	.word	0x2003e1cc
    d7294:	000d7195 	.word	0x000d7195
 
 000d7298 <_ZN9USBSerial14blockOnOverrunEb>:
@@ -11382,7 +11382,7 @@ USBSerial::USBSerial(HAL_USB_USART_Serial serial, const HAL_USB_USART_Config& co
 }
    d733c:	4620      	mov	r0, r4
    d733e:	bd10      	pop	{r4, pc}
-   d7340:	000d95b0 	.word	0x000d95b0
+   d7340:	000d95ac 	.word	0x000d95ac
 
 000d7344 <_Z19acquireSerialBufferv>:
 
@@ -11455,7 +11455,7 @@ USBSerial& _fetch_usbserial()
    d738e:	bd30      	pop	{r4, r5, pc}
    d7390:	2003e6b8 	.word	0x2003e6b8
    d7394:	2003e6bc 	.word	0x2003e6bc
-   d7398:	2003e1c8 	.word	0x2003e1c8
+   d7398:	2003e1cc 	.word	0x2003e1cc
    d739c:	000d729d 	.word	0x000d729d
 
 000d73a0 <serialEventRun>:
@@ -12041,7 +12041,7 @@ struct EEPROMClass{
    d761e:	60e0      	str	r0, [r4, #12]
    d7620:	4620      	mov	r0, r4
    d7622:	bd70      	pop	{r4, r5, r6, pc}
-   d7624:	000d95d8 	.word	0x000d95d8
+   d7624:	000d95d4 	.word	0x000d95d4
 
 000d7628 <_Z18acquireWire1Bufferv>:
 	return defaultWireConfig();
@@ -12121,7 +12121,7 @@ HAL_I2C_Config __attribute__((weak)) acquireWire1Buffer()
 }
    d7654:	4620      	mov	r0, r4
    d7656:	bd70      	pop	{r4, r5, r6, pc}
-   d7658:	000d95d8 	.word	0x000d95d8
+   d7658:	000d95d4 	.word	0x000d95d4
 
 000d765c <_Z19__fetch_global_Wirev>:
 	return defaultWireConfig();
@@ -12166,7 +12166,7 @@ TwoWire& __fetch_global_Wire()
    d7696:	bd30      	pop	{r4, r5, pc}
    d7698:	2003e6e4 	.word	0x2003e6e4
    d769c:	2003e6fc 	.word	0x2003e6fc
-   d76a0:	2003e1c8 	.word	0x2003e1c8
+   d76a0:	2003e1cc 	.word	0x2003e1cc
    d76a4:	000d67a9 	.word	0x000d67a9
 
 000d76a8 <_Z20__fetch_global_Wire1v>:
@@ -12211,7 +12211,7 @@ TwoWire& __fetch_global_Wire1()
    d76e2:	bf00      	nop
    d76e4:	2003e710 	.word	0x2003e710
    d76e8:	2003e6e8 	.word	0x2003e6e8
-   d76ec:	2003e1c8 	.word	0x2003e1c8
+   d76ec:	2003e1cc 	.word	0x2003e1cc
    d76f0:	000d67a9 	.word	0x000d67a9
 
 000d76f4 <_ZN8particle7globals11instanceSpiEv>:
@@ -12245,7 +12245,7 @@ SPIClass& instanceSpi() {
    d7722:	bd38      	pop	{r3, r4, r5, pc}
    d7724:	2003e720 	.word	0x2003e720
    d7728:	2003e714 	.word	0x2003e714
-   d772c:	2003e1c8 	.word	0x2003e1c8
+   d772c:	2003e1cc 	.word	0x2003e1cc
    d7730:	000d6d6d 	.word	0x000d6d6d
 
 000d7734 <__aeabi_atexit>:
@@ -13289,7 +13289,7 @@ SPIClass& instanceSpi() {
    d827a:	4628      	mov	r0, r5
    d827c:	e8bd 4038 	ldmia.w	sp!, {r3, r4, r5, lr}
    d8280:	f000 b802 	b.w	d8288 <localtime_r>
-   d8284:	2003e178 	.word	0x2003e178
+   d8284:	2003e17c 	.word	0x2003e17c
 
 000d8288 <localtime_r>:
    d8288:	e92d 41f0 	stmdb	sp!, {r4, r5, r6, r7, r8, lr}
@@ -13483,7 +13483,7 @@ SPIClass& instanceSpi() {
    d8444:	4620      	mov	r0, r4
    d8446:	e8bd 81f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, pc}
    d844a:	bf00      	nop
-   d844c:	000d973c 	.word	0x000d973c
+   d844c:	000d9738 	.word	0x000d9738
    d8450:	2003e7e4 	.word	0x2003e7e4
 
 000d8454 <memcpy>:
@@ -13539,7 +13539,7 @@ SPIClass& instanceSpi() {
    d84c2:	611d      	str	r5, [r3, #16]
    d84c4:	615a      	str	r2, [r3, #20]
    d84c6:	bd38      	pop	{r3, r4, r5, pc}
-   d84c8:	2003e178 	.word	0x2003e178
+   d84c8:	2003e17c 	.word	0x2003e17c
 
 000d84cc <strcmp>:
    d84cc:	f810 2b01 	ldrb.w	r2, [r0], #1
@@ -13565,7 +13565,7 @@ SPIClass& instanceSpi() {
    d84f4:	6818      	ldr	r0, [r3, #0]
    d84f6:	f000 b803 	b.w	d8500 <_strdup_r>
    d84fa:	bf00      	nop
-   d84fc:	2003e178 	.word	0x2003e178
+   d84fc:	2003e17c 	.word	0x2003e17c
 
 000d8500 <_strdup_r>:
    d8500:	b570      	push	{r4, r5, r6, lr}
@@ -13737,7 +13737,7 @@ SPIClass& instanceSpi() {
    d8688:	e7aa      	b.n	d85e0 <_strtol_r+0x58>
    d868a:	e8bd 87f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, pc}
    d868e:	bf00      	nop
-   d8690:	2003e114 	.word	0x2003e114
+   d8690:	2003e118 	.word	0x2003e118
 
 000d8694 <strtol>:
    d8694:	4613      	mov	r3, r2
@@ -13747,7 +13747,7 @@ SPIClass& instanceSpi() {
    d869c:	6800      	ldr	r0, [r0, #0]
    d869e:	f7ff bf73 	b.w	d8588 <_strtol_r>
    d86a2:	bf00      	nop
-   d86a4:	2003e178 	.word	0x2003e178
+   d86a4:	2003e17c 	.word	0x2003e17c
 
 000d86a8 <_strtoul_r>:
    d86a8:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -13847,7 +13847,7 @@ SPIClass& instanceSpi() {
    d8798:	e7b2      	b.n	d8700 <_strtoul_r+0x58>
    d879a:	e8bd 87f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, pc}
    d879e:	bf00      	nop
-   d87a0:	2003e114 	.word	0x2003e114
+   d87a0:	2003e118 	.word	0x2003e118
 
 000d87a4 <strtoul>:
    d87a4:	4613      	mov	r3, r2
@@ -13857,7 +13857,7 @@ SPIClass& instanceSpi() {
    d87ac:	6800      	ldr	r0, [r0, #0]
    d87ae:	f7ff bf7b 	b.w	d86a8 <_strtoul_r>
    d87b2:	bf00      	nop
-   d87b4:	2003e178 	.word	0x2003e178
+   d87b4:	2003e17c 	.word	0x2003e17c
 
 000d87b8 <__tzcalc_limits>:
    d87b8:	e92d 4ff7 	stmdb	sp!, {r0, r1, r2, r4, r5, r6, r7, r8, r9, sl, fp, lr}
@@ -13983,7 +13983,7 @@ SPIClass& instanceSpi() {
    d88f8:	2000      	movs	r0, #0
    d88fa:	b003      	add	sp, #12
    d88fc:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
-   d8900:	000d973c 	.word	0x000d973c
+   d8900:	000d9738 	.word	0x000d9738
    d8904:	00015180 	.word	0x00015180
 
 000d8908 <__tz_lock>:
@@ -13996,7 +13996,7 @@ SPIClass& instanceSpi() {
    d890c:	4b01      	ldr	r3, [pc, #4]	; (d8914 <_tzset_unlocked+0x8>)
    d890e:	6818      	ldr	r0, [r3, #0]
    d8910:	f000 b802 	b.w	d8918 <_tzset_unlocked_r>
-   d8914:	2003e178 	.word	0x2003e178
+   d8914:	2003e17c 	.word	0x2003e17c
 
 000d8918 <_tzset_unlocked_r>:
    d8918:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
@@ -14276,17 +14276,17 @@ SPIClass& instanceSpi() {
    d8be0:	b00d      	add	sp, #52	; 0x34
    d8be2:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
    d8be6:	bf00      	nop
-   d8be8:	000d979c 	.word	0x000d979c
+   d8be8:	000d9798 	.word	0x000d9798
    d8bec:	2003e7e0 	.word	0x2003e7e0
    d8bf0:	2003e7e8 	.word	0x2003e7e8
-   d8bf4:	000d979f 	.word	0x000d979f
+   d8bf4:	000d979b 	.word	0x000d979b
    d8bf8:	2003e7e4 	.word	0x2003e7e4
-   d8bfc:	2003e17c 	.word	0x2003e17c
+   d8bfc:	2003e180 	.word	0x2003e180
    d8c00:	2003e7d3 	.word	0x2003e7d3
-   d8c04:	000d97a3 	.word	0x000d97a3
-   d8c08:	000d97c6 	.word	0x000d97c6
-   d8c0c:	000d97b2 	.word	0x000d97b2
-   d8c10:	000d97c5 	.word	0x000d97c5
+   d8c04:	000d979f 	.word	0x000d979f
+   d8c08:	000d97c2 	.word	0x000d97c2
+   d8c0c:	000d97ae 	.word	0x000d97ae
+   d8c10:	000d97c1 	.word	0x000d97c1
    d8c14:	2003e7c8 	.word	0x2003e7c8
 
 000d8c18 <_findenv_r>:
@@ -14335,7 +14335,7 @@ SPIClass& instanceSpi() {
    d8c86:	464d      	mov	r5, r9
    d8c88:	e7e1      	b.n	d8c4e <_findenv_r+0x36>
    d8c8a:	bf00      	nop
-   d8c8c:	2003e1c4 	.word	0x2003e1c4
+   d8c8c:	2003e1c8 	.word	0x2003e1c8
 
 000d8c90 <_getenv_r>:
    d8c90:	b507      	push	{r0, r1, r2, lr}
@@ -14348,7 +14348,7 @@ SPIClass& instanceSpi() {
 000d8ca0 <__gettzinfo>:
    d8ca0:	4800      	ldr	r0, [pc, #0]	; (d8ca4 <__gettzinfo+0x4>)
    d8ca2:	4770      	bx	lr
-   d8ca4:	2003e184 	.word	0x2003e184
+   d8ca4:	2003e188 	.word	0x2003e188
 
 000d8ca8 <gmtime_r>:
    d8ca8:	6802      	ldr	r2, [r0, #0]
@@ -14483,200 +14483,199 @@ SPIClass& instanceSpi() {
    d8f10:	5222 7365 7465 2273 253a 2c69 2220 6c41     "Resets":%i, "Al
    d8f20:	7265 7374 3a22 6925 007d 7752 6e61 6164     erts":%i}.Rwanda
    d8f30:	532d 6e65 6573 412d 646e 432d 6e6f 7274     -Sense-And-Contr
-   d8f40:	6c6f 322d 4e00 206f 6144 6174 5500 6962     ol-2.No Data.Ubi
-   d8f50:	6f64 7374 4820 6f6f 006b 6552 7073 6e6f     dots Hook.Respon
-   d8f60:	6573 5220 6365 6965 6576 0064 6e55 6e6b     se Received.Unkn
-   d8f70:	776f 206e 6572 7073 6e6f 6573 7220 6365     own response rec
-   d8f80:	7665 6569 2064 6925 5300 7465 5320 6c6f     evied %i.Set Sol
-   d8f90:	7261 5020 776f 7265 6465 4d20 646f 0065     ar Powered Mode.
-   d8fa0:	0030 6c43 6165 6572 2064 6f53 616c 2072     0.Cleared Solar 
-   d8fb0:	6f50 6577 6572 2064 6f4d 6564 4e00 206f     Powered Mode.No 
-   d8fc0:	6f53 6c69 5320 6e65 6f73 7372 4f00 656e     Soil Sensors.One
-   d8fd0:	5320 696f 206c 6553 736e 726f 5400 6f77      Soil Sensor.Two
-   d8fe0:	5320 696f 206c 6553 736e 726f 0073 6f4e      Soil Sensors.No
-   d8ff0:	5020 6572 7373 7275 2065 6553 736e 726f      Pressure Sensor
-   d9000:	5000 6572 7373 7275 2065 6553 736e 726f     .Pressure Sensor
-   d9010:	5020 6572 6573 746e 4e00 206f 694c 6867      Present.No Ligh
-   d9020:	2074 6553 736e 726f 4c00 6769 7468 5320     t Sensor.Light S
-   d9030:	6e65 6f73 2072 7250 7365 6e65 0074 6559     ensor Present.Ye
-   d9040:	0073 6579 0073 6f6e 4e00 006f 6f4e 5320     s.yes.no.No.No S
-   d9050:	6c6f 6e65 696f 2064 7441 6174 6863 6465     olenoid Attached
-   d9060:	5300 7465 5620 7265 6f62 6573 4d20 646f     .Set Verbose Mod
-   d9070:	0065 6c43 6165 6572 2064 6556 6272 736f     e.Cleared Verbos
-   d9080:	2065 6f4d 6564 4c00 776f 5020 776f 7265     e Mode.Low Power
-   d9090:	4e00 726f 616d 206c 704f 7265 7461 6f69     .Normal Operatio
-   d90a0:	736e 4f00 006e 704f 6e65 7420 6568 5620     ns.On.Open the V
-   d90b0:	6c61 6576 5300 6c6f 6e65 696f 0064 664f     alve.Solenoid.Of
-   d90c0:	0066 6c43 736f 2065 6874 2065 6176 766c     f.Close the valv
-   d90d0:	0065 6925 6d20 6553 0063 7246 6d6f 2520     e.%i mSec.From %
-   d90e0:	2073 6f74 2520 0073 7453 7461 2065 7254     s to %s.State Tr
-   d90f0:	6e61 6973 6974 6e6f 7300 6170 6b72 642f     ansition.spark/d
-   d9100:	7665 6369 2f65 6573 7373 6f69 2f6e 6e65     evice/session/en
-   d9110:	0064 6f47 6e69 2067 6f74 5320 656c 7065     d.Going to Sleep
-   d9120:	5300 6174 6574 4c00 776f 4220 7461 6574     .State.Low Batte
-   d9130:	7972 2d20 5320 656c 7065 6e69 0067 7245     ry - Sleeping.Er
-   d9140:	6f72 2072 7453 7461 2065 202d 6552 6573     ror State - Rese
-   d9150:	0074 7245 6f72 2072 7453 7461 2065 202d     t.Error State - 
-   d9160:	6f50 6577 2072 7943 6c63 0065 7245 6f72     Power Cycle.Erro
-   d9170:	2072 7453 7461 2065 202d 7546 6c6c 4d20     r State - Full M
-   d9180:	646f 6d65 5220 7365 7465 4500 7272 726f     odem Reset.Error
-   d9190:	7420 6b61 6e69 2067 654d 7361 7275 6d65      taking Measurem
-   d91a0:	6e65 7374 5300 6769 616e 006c 6552 6573     ents.Signal.Rese
-   d91b0:	4374 756f 746e 5200 6c65 6165 6573 5300     tCount.Release.S
-   d91c0:	6174 6574 664f 6843 0067 6f50 6577 4372     tateOfChg.PowerC
-   d91d0:	6e6f 6574 7478 4c00 776f 6f50 6577 4d72     ontext.LowPowerM
-   d91e0:	646f 0065 6554 706d 7265 7461 7275 0065     ode.Temperature.
-   d91f0:	7548 696d 6964 7974 4c00 6d75 6e69 736f     Humidity.Luminos
-   d9200:	7469 0079 6f53 6c69 6f4d 7369 7574 6572     ity.SoilMoisture
-   d9210:	0031 6f53 6c69 6f4d 7369 7574 6572 0032     1.SoilMoisture2.
-   d9220:	7250 7365 7573 6572 4d00 6165 7573 6572     Pressure.Measure
-   d9230:	4e2d 776f 5300 6c6f 7261 4d2d 646f 0065     -Now.Solar-Mode.
-   d9240:	6556 6272 736f 2d65 6f4d 6564 4300 6e6f     Verbose-Mode.Con
-   d9250:	6f74 566c 6c61 6576 5300 7465 6f48 646c     tolValve.SetHold
-   d9260:	6954 656d 5300 7465 6f53 6c69 6553 736e     Time.SetSoilSens
-   d9270:	726f 0073 6553 5074 6572 7373 7275 5365     ors.SetPressureS
-   d9280:	6e65 6f73 0072 6553 4c74 6769 7468 6553     ensor.SetLightSe
-   d9290:	736e 726f 5300 6c6f 6e65 696f 5064 6572     nsor.SolenoidPre
-   d92a0:	6573 746e 4300 756f 646c 6e20 746f 6620     sent.Could not f
-   d92b0:	6e69 2064 4853 3354 0031 6146 6c69 6465     ind SHT31.Failed
-   d92c0:	7420 206f 6f63 6e6e 6365 0074 7453 7261      to connect.Star
-   d92d0:	7574 0070 6e55 6e6b 776f 006e 6f4e 656e     tup.Unknown.None
-   d92e0:	5700 4669 0069 5347 004d 4d55 5354 4300     .WiFi.GSM.UMTS.C
-   d92f0:	4d44 0041 544c 0045 4549 4545 3038 3132     DMA.LTE.IEEE8021
-   d9300:	3435 3100                                        54.
+   d8f40:	6c6f 4e00 206f 6144 6174 5500 6962 6f64     ol.No Data.Ubido
+   d8f50:	7374 4820 6f6f 006b 6552 7073 6e6f 6573     ts Hook.Response
+   d8f60:	5220 6365 6965 6576 0064 6e55 6e6b 776f      Received.Unknow
+   d8f70:	206e 6572 7073 6e6f 6573 7220 6365 7665     n response recev
+   d8f80:	6569 2064 6925 5300 7465 5320 6c6f 7261     ied %i.Set Solar
+   d8f90:	5020 776f 7265 6465 4d20 646f 0065 0030      Powered Mode.0.
+   d8fa0:	6c43 6165 6572 2064 6f53 616c 2072 6f50     Cleared Solar Po
+   d8fb0:	6577 6572 2064 6f4d 6564 4e00 206f 6f53     wered Mode.No So
+   d8fc0:	6c69 5320 6e65 6f73 7372 4f00 656e 5320     il Sensors.One S
+   d8fd0:	696f 206c 6553 736e 726f 5400 6f77 5320     oil Sensor.Two S
+   d8fe0:	696f 206c 6553 736e 726f 0073 6f4e 5020     oil Sensors.No P
+   d8ff0:	6572 7373 7275 2065 6553 736e 726f 5000     ressure Sensor.P
+   d9000:	6572 7373 7275 2065 6553 736e 726f 5020     ressure Sensor P
+   d9010:	6572 6573 746e 4e00 206f 694c 6867 2074     resent.No Light 
+   d9020:	6553 736e 726f 4c00 6769 7468 5320 6e65     Sensor.Light Sen
+   d9030:	6f73 2072 7250 7365 6e65 0074 6559 0073     sor Present.Yes.
+   d9040:	6579 0073 6f6e 4e00 006f 6f4e 5320 6c6f     yes.no.No.No Sol
+   d9050:	6e65 696f 2064 7441 6174 6863 6465 5300     enoid Attached.S
+   d9060:	7465 5620 7265 6f62 6573 4d20 646f 0065     et Verbose Mode.
+   d9070:	6c43 6165 6572 2064 6556 6272 736f 2065     Cleared Verbose 
+   d9080:	6f4d 6564 4c00 776f 5020 776f 7265 4e00     Mode.Low Power.N
+   d9090:	726f 616d 206c 704f 7265 7461 6f69 736e     ormal Operations
+   d90a0:	4f00 006e 704f 6e65 7420 6568 5620 6c61     .On.Open the Val
+   d90b0:	6576 5300 6c6f 6e65 696f 0064 664f 0066     ve.Solenoid.Off.
+   d90c0:	6c43 736f 2065 6874 2065 6176 766c 0065     Close the valve.
+   d90d0:	6925 6d20 6553 0063 7246 6d6f 2520 2073     %i mSec.From %s 
+   d90e0:	6f74 2520 0073 7453 7461 2065 7254 6e61     to %s.State Tran
+   d90f0:	6973 6974 6e6f 7300 6170 6b72 642f 7665     sition.spark/dev
+   d9100:	6369 2f65 6573 7373 6f69 2f6e 6e65 0064     ice/session/end.
+   d9110:	6154 696b 676e 6120 4e20 7061 5300 6174     Taking a Nap.Sta
+   d9120:	6574 4c00 776f 4220 7461 6574 7972 2d20     te.Low Battery -
+   d9130:	5320 656c 7065 6e69 0067 7245 6f72 2072      Sleeping.Error 
+   d9140:	7453 7461 2065 202d 6552 6573 0074 7245     State - Reset.Er
+   d9150:	6f72 2072 7453 7461 2065 202d 6f50 6577     ror State - Powe
+   d9160:	2072 7943 6c63 0065 7245 6f72 2072 7453     r Cycle.Error St
+   d9170:	7461 2065 202d 7546 6c6c 4d20 646f 6d65     ate - Full Modem
+   d9180:	5220 7365 7465 4500 7272 726f 7420 6b61      Reset.Error tak
+   d9190:	6e69 2067 654d 7361 7275 6d65 6e65 7374     ing Measurements
+   d91a0:	5300 6769 616e 006c 6552 6573 4374 756f     .Signal.ResetCou
+   d91b0:	746e 5200 6c65 6165 6573 5300 6174 6574     nt.Release.State
+   d91c0:	664f 6843 0067 6f50 6577 4372 6e6f 6574     OfChg.PowerConte
+   d91d0:	7478 4c00 776f 6f50 6577 4d72 646f 0065     xt.LowPowerMode.
+   d91e0:	6554 706d 7265 7461 7275 0065 7548 696d     Temperature.Humi
+   d91f0:	6964 7974 4c00 6d75 6e69 736f 7469 0079     dity.Luminosity.
+   d9200:	6f53 6c69 6f4d 7369 7574 6572 0031 6f53     SoilMoisture1.So
+   d9210:	6c69 6f4d 7369 7574 6572 0032 7250 7365     ilMoisture2.Pres
+   d9220:	7573 6572 4d00 6165 7573 6572 4e2d 776f     sure.Measure-Now
+   d9230:	5300 6c6f 7261 4d2d 646f 0065 6556 6272     .Solar-Mode.Verb
+   d9240:	736f 2d65 6f4d 6564 4300 6e6f 6f74 566c     ose-Mode.ContolV
+   d9250:	6c61 6576 5300 7465 6f48 646c 6954 656d     alve.SetHoldTime
+   d9260:	5300 7465 6f53 6c69 6553 736e 726f 0073     .SetSoilSensors.
+   d9270:	6553 5074 6572 7373 7275 5365 6e65 6f73     SetPressureSenso
+   d9280:	0072 6553 4c74 6769 7468 6553 736e 726f     r.SetLightSensor
+   d9290:	5300 6c6f 6e65 696f 5064 6572 6573 746e     .SolenoidPresent
+   d92a0:	4300 756f 646c 6e20 746f 6620 6e69 2064     .Could not find 
+   d92b0:	4853 3354 0031 6146 6c69 6465 7420 206f     SHT31.Failed to 
+   d92c0:	6f63 6e6e 6365 0074 7453 7261 7574 0070     connect.Startup.
+   d92d0:	6e55 6e6b 776f 006e 6f4e 656e 5700 4669     Unknown.None.WiF
+   d92e0:	0069 5347 004d 4d55 5354 4300 4d44 0041     i.GSM.UMTS.CDMA.
+   d92f0:	544c 0045 4549 4545 3038 3132 3435 3100          LTE.IEEE802154.
 
-000d9303 <_ZL13releaseNumber>:
-   d9303:	3531 0000 0000 0000 0000                         15.......
+000d92ff <_ZL13releaseNumber>:
+   d92ff:	3531 0000 0000 0000 0000                         15.......
 
-000d930c <_ZTVN5spark13CellularClassE>:
+000d9308 <_ZTVN5spark13CellularClassE>:
 	...
-   d9314:	5e27 000d 5e1d 000d 5e13 000d 5dc9 000d     '^...^...^...]..
-   d9324:	5e07 000d 5dfb 000d 5def 000d 5de7 000d     .^...]...]...]..
-   d9334:	5ddd 000d 5dd3 000d 6ba5 000d               .]...]...k..
+   d9310:	5e27 000d 5e1d 000d 5e13 000d 5dc9 000d     '^...^...^...]..
+   d9320:	5e07 000d 5dfb 000d 5def 000d 5de7 000d     .^...]...]...]..
+   d9330:	5ddd 000d 5dd3 000d 6ba5 000d               .]...]...k..
 
-000d9340 <_ZTV14CellularSignal>:
+000d933c <_ZTV14CellularSignal>:
 	...
-   d9348:	5ed5 000d 5f35 000d 5ed7 000d 5f79 000d     .^..5_...^..y_..
-   d9358:	5edd 000d 5f45 000d 5f09 000d 6003 000d     .^..E_..._...`..
-   d9368:	fffc ffff 0000 0000 602d 000d               ........-`..
+   d9344:	5ed5 000d 5f35 000d 5ed7 000d 5f79 000d     .^..5_...^..y_..
+   d9354:	5edd 000d 5f45 000d 5f09 000d 6003 000d     .^..E_..._...`..
+   d9364:	fffc ffff 0000 0000 602d 000d               ........-`..
 
-000d9374 <_ZTVSt15_Sp_counted_ptrIPN8particle6detail10FutureImplIbNS1_13FutureContextEEELN9__gnu_cxx12_Lock_policyE0EE>:
+000d9370 <_ZTVSt15_Sp_counted_ptrIPN8particle6detail10FutureImplIbNS1_13FutureContextEEELN9__gnu_cxx12_Lock_policyE0EE>:
 	...
-   d937c:	6035 000d 603b 000d 6091 000d 6049 000d     5`..;`...`..I`..
-   d938c:	6037 000d                                   7`..
+   d9378:	6035 000d 603b 000d 6091 000d 6049 000d     5`..;`...`..I`..
+   d9388:	6037 000d                                   7`..
 
-000d9390 <_ZTVN5spark13EthernetClassE>:
+000d938c <_ZTVN5spark13EthernetClassE>:
 	...
-   d9398:	66a7 000d 669d 000d 6693 000d 6689 000d     .f...f...f...f..
-   d93a8:	667d 000d 6671 000d 6665 000d 665d 000d     }f..qf..ef..]f..
-   d93b8:	6653 000d 6649 000d 6ba5 000d               Sf..If...k..
+   d9394:	66a7 000d 669d 000d 6693 000d 6689 000d     .f...f...f...f..
+   d93a4:	667d 000d 6671 000d 6665 000d 665d 000d     }f..qf..ef..]f..
+   d93b4:	6653 000d 6649 000d 6ba5 000d               Sf..If...k..
 
-000d93c4 <_ZTV7TwoWire>:
+000d93c0 <_ZTV7TwoWire>:
 	...
-   d93cc:	67a9 000d 67f3 000d 67cb 000d 67ab 000d     .g...g...g...g..
-   d93dc:	67d3 000d 67db 000d 67e3 000d 67eb 000d     .g...g...g...g..
+   d93c8:	67a9 000d 67f3 000d 67cb 000d 67ab 000d     .g...g...g...g..
+   d93d8:	67d3 000d 67db 000d 67e3 000d 67eb 000d     .g...g...g...g..
 
-000d93ec <_ZTV9IPAddress>:
+000d93e8 <_ZTV9IPAddress>:
 	...
-   d93f4:	68f5 000d 68e5 000d 68e7 000d 6162 6475     .h...h...h..baud
-   d9404:	5300 7265 6169 006c 6553 6972 6c61 0031     .Serial.Serial1.
-   d9414:	7974 6570 7000 7261 6d61 6300 646d 6800     type.param.cmd.h
-   d9424:	646e 7300 7274 006d 6966 746c 6c00 6c76     nd.strm.filt.lvl
-   d9434:	6100 6464 6148 646e 656c 0072 6572 6f6d     .addHandler.remo
-   d9444:	6576 6148 646e 656c 0072 6e65 6d75 6148     veHandler.enumHa
-   d9454:	646e 656c 7372 4a00 4f53 534e 7274 6165     ndlers.JSONStrea
-   d9464:	4c6d 676f 6148 646e 656c 0072 7061 0070     mLogHandler.app.
-   d9474:	3025 3031 2075 5d00 0020 6425 2c00 0020     %010u .] .%d., .
-   d9484:	2928 203a 2000 005b 6f63 6564 3d20 0020     (): . [.code = .
-   d9494:	6564 6174 6c69 2073 203d 6c00 006e 6e66     details = .ln.fn
-   d94a4:	6300 646f 0065 6564 6174 6c69 6e00 6e6f     .code.detail.non
-   d94b4:	0065 7274 6361 0065 6e69 6f66 7700 7261     e.trace.info.war
-   d94c4:	006e 7265 6f72 0072 6170 696e 0063 6c61     n.error.panic.al
-   d94d4:	006c 0000                                   l...
+   d93f0:	68f5 000d 68e5 000d 68e7 000d 6162 6475     .h...h...h..baud
+   d9400:	5300 7265 6169 006c 6553 6972 6c61 0031     .Serial.Serial1.
+   d9410:	7974 6570 7000 7261 6d61 6300 646d 6800     type.param.cmd.h
+   d9420:	646e 7300 7274 006d 6966 746c 6c00 6c76     nd.strm.filt.lvl
+   d9430:	6100 6464 6148 646e 656c 0072 6572 6f6d     .addHandler.remo
+   d9440:	6576 6148 646e 656c 0072 6e65 6d75 6148     veHandler.enumHa
+   d9450:	646e 656c 7372 4a00 4f53 534e 7274 6165     ndlers.JSONStrea
+   d9460:	4c6d 676f 6148 646e 656c 0072 7061 0070     mLogHandler.app.
+   d9470:	3025 3031 2075 5d00 0020 6425 2c00 0020     %010u .] .%d., .
+   d9480:	2928 203a 2000 005b 6f63 6564 3d20 0020     (): . [.code = .
+   d9490:	6564 6174 6c69 2073 203d 6c00 006e 6e66     details = .ln.fn
+   d94a0:	6300 646f 0065 6564 6174 6c69 6e00 6e6f     .code.detail.non
+   d94b0:	0065 7274 6361 0065 6e69 6f66 7700 7261     e.trace.info.war
+   d94c0:	006e 7265 6f72 0072 6170 696e 0063 6c61     n.error.panic.al
+   d94d0:	006c 0000                                   l...
 
-000d94d8 <_ZTVN5spark9MeshClassE>:
+000d94d4 <_ZTVN5spark9MeshClassE>:
 	...
-   d94e0:	6a37 000d 6a2d 000d 6a23 000d 6a19 000d     7j..-j..#j...j..
-   d94f0:	6a0d 000d 6a01 000d 69f5 000d 69ed 000d     .j...j...i...i..
-   d9500:	69e3 000d 69d9 000d 6ba5 000d               .i...i...k..
+   d94dc:	6a37 000d 6a2d 000d 6a23 000d 6a19 000d     7j..-j..#j...j..
+   d94ec:	6a0d 000d 6a01 000d 69f5 000d 69ed 000d     .j...j...i...i..
+   d94fc:	69e3 000d 69d9 000d 6ba5 000d               .i...i...k..
 
-000d950c <_ZTVN5spark12NetworkClassE>:
+000d9508 <_ZTVN5spark12NetworkClassE>:
 	...
-   d9514:	6b3d 000d 6b47 000d 6b51 000d 6b5b 000d     =k..Gk..Qk..[k..
-   d9524:	6b65 000d 6b71 000d 6b7d 000d 6b89 000d     ek..qk..}k...k..
-   d9534:	6b91 000d 6b9b 000d 6ba5 000d               .k...k...k..
+   d9510:	6b3d 000d 6b47 000d 6b51 000d 6b5b 000d     =k..Gk..Qk..[k..
+   d9520:	6b65 000d 6b71 000d 6b7d 000d 6b89 000d     ek..qk..}k...k..
+   d9530:	6b91 000d 6b9b 000d 6ba5 000d               .k...k...k..
 
-000d9540 <_ZTV8SPIClass>:
+000d953c <_ZTV8SPIClass>:
 	...
-   d9548:	6d6d 000d 6d6f 000d 2b25 3330 3a64 3025     mm..om..%+03d:%0
-   d9558:	7532 2500 2d59 6d25 252d 5464 4825 253a     2u.%Y-%m-%dT%H:%
-   d9568:	3a4d 5325 7a25 6100 6373 6974 656d 0000     M:%S%z.asctime..
+   d9544:	6d6d 000d 6d6f 000d 2b25 3330 3a64 3025     mm..om..%+03d:%0
+   d9554:	7532 2500 2d59 6d25 252d 5464 4825 253a     2u.%Y-%m-%dT%H:%
+   d9564:	3a4d 5325 7a25 6100 6373 6974 656d 0000     M:%S%z.asctime..
 
-000d9578 <_ZTV11USARTSerial>:
+000d9574 <_ZTV11USARTSerial>:
 	...
-   d9580:	7195 000d 71e5 000d 71f3 000d 6c85 000d     .q...q...q...l..
-   d9590:	71a9 000d 71cb 000d 71b7 000d 71df 000d     .q...q...q...q..
-   d95a0:	7197 000d 719b 000d                         .q...q..
+   d957c:	7195 000d 71e5 000d 71f3 000d 6c85 000d     .q...q...q...l..
+   d958c:	71a9 000d 71cb 000d 71b7 000d 71df 000d     .q...q...q...q..
+   d959c:	7197 000d 719b 000d                         .q...q..
 
-000d95a8 <_ZTV9USBSerial>:
+000d95a4 <_ZTV9USBSerial>:
 	...
-   d95b0:	729d 000d 72ed 000d 72fb 000d 6c85 000d     .r...r...r...l..
-   d95c0:	72d9 000d 729f 000d 72b5 000d 72e7 000d     .r...r...r...r..
-   d95d0:	72cb 000d 7299 000d                         .r...r..
+   d95ac:	729d 000d 72ed 000d 72fb 000d 6c85 000d     .r...r...r...l..
+   d95bc:	72d9 000d 729f 000d 72b5 000d 72e7 000d     .r...r...r...r..
+   d95cc:	72cb 000d 7299 000d                         .r...r..
 
-000d95d8 <_ZSt7nothrow>:
-	...
-
-000d95d9 <_ctype_>:
-   d95d9:	2000 2020 2020 2020 2020 2828 2828 2028     .         ((((( 
-   d95e9:	2020 2020 2020 2020 2020 2020 2020 2020                     
-   d95f9:	8820 1010 1010 1010 1010 1010 1010 1010      ...............
-   d9609:	0410 0404 0404 0404 0404 1004 1010 1010     ................
-   d9619:	1010 4141 4141 4141 0101 0101 0101 0101     ..AAAAAA........
-   d9629:	0101 0101 0101 0101 0101 0101 1010 1010     ................
-   d9639:	1010 4242 4242 4242 0202 0202 0202 0202     ..BBBBBB........
-   d9649:	0202 0202 0202 0202 0202 0202 1010 1010     ................
-   d9659:	0020 0000 0000 0000 0000 0000 0000 0000      ...............
+000d95d4 <_ZSt7nothrow>:
 	...
 
-000d96dc <__sf_fake_stdin>:
+000d95d5 <_ctype_>:
+   d95d5:	2000 2020 2020 2020 2020 2828 2828 2028     .         ((((( 
+   d95e5:	2020 2020 2020 2020 2020 2020 2020 2020                     
+   d95f5:	8820 1010 1010 1010 1010 1010 1010 1010      ...............
+   d9605:	0410 0404 0404 0404 0404 1004 1010 1010     ................
+   d9615:	1010 4141 4141 4141 0101 0101 0101 0101     ..AAAAAA........
+   d9625:	0101 0101 0101 0101 0101 0101 1010 1010     ................
+   d9635:	1010 4242 4242 4242 0202 0202 0202 0202     ..BBBBBB........
+   d9645:	0202 0202 0202 0202 0202 0202 1010 1010     ................
+   d9655:	0020 0000 0000 0000 0000 0000 0000 0000      ...............
 	...
 
-000d96fc <__sf_fake_stdout>:
+000d96d8 <__sf_fake_stdin>:
 	...
 
-000d971c <__sf_fake_stderr>:
+000d96f8 <__sf_fake_stdout>:
 	...
 
-000d973c <__month_lengths>:
-   d973c:	001f 0000 001c 0000 001f 0000 001e 0000     ................
-   d974c:	001f 0000 001e 0000 001f 0000 001f 0000     ................
-   d975c:	001e 0000 001f 0000 001e 0000 001f 0000     ................
-   d976c:	001f 0000 001d 0000 001f 0000 001e 0000     ................
-   d977c:	001f 0000 001e 0000 001f 0000 001f 0000     ................
-   d978c:	001e 0000 001f 0000 001e 0000 001f 0000     ................
-   d979c:	5a54 4700 544d 2500 3031 5e5b 2d30 2c39     TZ.GMT.%10[^0-9,
-   d97ac:	2d2b 255d 006e 254d 7568 6e25 252e 7568     +-]%n.M%hu%n.%hu
-   d97bc:	6e25 252e 7568 6e25 2f00 6825 2575 3a6e     %n.%hu%n./%hu%n:
-   d97cc:	6825 2575 3a6e 6825 2575 006e               %hu%n:%hu%n.
+000d9718 <__sf_fake_stderr>:
+	...
 
-000d97d8 <link_const_variable_data_end>:
-   d97d8:	000d53e1 	.word	0x000d53e1
-   d97dc:	000d5661 	.word	0x000d5661
-   d97e0:	000d5711 	.word	0x000d5711
-   d97e4:	000d5db9 	.word	0x000d5db9
-   d97e8:	000d5ea5 	.word	0x000d5ea5
-   d97ec:	000d66b1 	.word	0x000d66b1
-   d97f0:	000d69c9 	.word	0x000d69c9
-   d97f4:	000d6aed 	.word	0x000d6aed
-   d97f8:	000d6c71 	.word	0x000d6c71
-   d97fc:	000d6d51 	.word	0x000d6d51
-   d9800:	000d7055 	.word	0x000d7055
-   d9804:	000d7181 	.word	0x000d7181
-   d9808:	000d777d 	.word	0x000d777d
-   d980c:	000d7841 	.word	0x000d7841
-   d9810:	000d78c5 	.word	0x000d78c5
-   d9814:	000d7949 	.word	0x000d7949
+000d9738 <__month_lengths>:
+   d9738:	001f 0000 001c 0000 001f 0000 001e 0000     ................
+   d9748:	001f 0000 001e 0000 001f 0000 001f 0000     ................
+   d9758:	001e 0000 001f 0000 001e 0000 001f 0000     ................
+   d9768:	001f 0000 001d 0000 001f 0000 001e 0000     ................
+   d9778:	001f 0000 001e 0000 001f 0000 001f 0000     ................
+   d9788:	001e 0000 001f 0000 001e 0000 001f 0000     ................
+   d9798:	5a54 4700 544d 2500 3031 5e5b 2d30 2c39     TZ.GMT.%10[^0-9,
+   d97a8:	2d2b 255d 006e 254d 7568 6e25 252e 7568     +-]%n.M%hu%n.%hu
+   d97b8:	6e25 252e 7568 6e25 2f00 6825 2575 3a6e     %n.%hu%n./%hu%n:
+   d97c8:	6825 2575 3a6e 6825 2575 006e               %hu%n:%hu%n.
 
-000d9818 <link_constructors_end>:
+000d97d4 <link_const_variable_data_end>:
+   d97d4:	000d53e1 	.word	0x000d53e1
+   d97d8:	000d5661 	.word	0x000d5661
+   d97dc:	000d5711 	.word	0x000d5711
+   d97e0:	000d5db9 	.word	0x000d5db9
+   d97e4:	000d5ea5 	.word	0x000d5ea5
+   d97e8:	000d66b1 	.word	0x000d66b1
+   d97ec:	000d69c9 	.word	0x000d69c9
+   d97f0:	000d6aed 	.word	0x000d6aed
+   d97f4:	000d6c71 	.word	0x000d6c71
+   d97f8:	000d6d51 	.word	0x000d6d51
+   d97fc:	000d7055 	.word	0x000d7055
+   d9800:	000d7181 	.word	0x000d7181
+   d9804:	000d777d 	.word	0x000d777d
+   d9808:	000d7841 	.word	0x000d7841
+   d980c:	000d78c5 	.word	0x000d78c5
+   d9810:	000d7949 	.word	0x000d7949
+
+000d9814 <link_constructors_end>:
 	...

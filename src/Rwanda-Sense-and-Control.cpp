@@ -66,7 +66,6 @@ const char releaseNumber[6] = "15";                  // Displays the release on 
 #include "DevicePinoutdoc.h"
 #include "BH1750.h"
 
-
 // Prototypes and System Mode calls
 SYSTEM_MODE(SEMI_AUTOMATIC);                        // This will enable user code to start executing automatically.
 SYSTEM_THREAD(ENABLED);                             // Means my code will not be held up by Particle processes.
@@ -123,7 +122,7 @@ struct currentStatus_structure {                    // currently 10 bytes long
 
 // State Machine Variables
 enum State { INITIALIZATION_STATE, ERROR_STATE, IDLE_STATE, MEASURING_STATE, WATERING_STATE, REPORTING_STATE, RESP_WAIT_STATE, NAPPING_STATE, LOW_BATTERY_STATE};
-char stateNames[8][14] = {"Initialize", "Error", "Idle", "Measuring", "Reporting", "Response Wait", "Sleeping", "Low Battery"};
+char stateNames[9][14] = {"Initialize", "Error", "Idle", "Measuring", "Watering", "Reporting", "Response Wait", "Napping", "Low Battery"};
 State state = INITIALIZATION_STATE;
 State oldState = INITIALIZATION_STATE;
 
@@ -163,7 +162,7 @@ char waterPressureString[16];
 char batteryString[16];
 char powerContext[24];                                            // One word that describes whether the device is getting power, charging, discharging or too cold to charge
 char holdTimeStr[16];
-char lightIntensityString[16];
+char lightLevelString[16];
 
 // Time Period Related Variables
 byte currentHourlyPeriod;                                         // This is where we will know if the period changed
@@ -202,7 +201,7 @@ void setup()                                                      // Note: Disco
   Particle.variable("LowPowerMode",(bool)sysStatus.lowPowerMode);
   Particle.variable("Temperature", temperatureString);
   Particle.variable("Humidity", humidityString);
-  Particle.variable("Luminosity",lightIntensityString);
+  Particle.variable("Luminosity",lightLevelString);
   Particle.variable("SoilMoisture1", current.soilMoisture1);
   Particle.variable("SoilMoisture2", current.soilMoisture2);
   Particle.variable("Pressure", current.pressure);
@@ -339,7 +338,7 @@ void loop()
     if (Particle.connected()) {
       if (sysStatus.verboseMode) {
         waitUntil(meterParticlePublish);
-        Particle.publish("State","Going to Sleep",PRIVATE);
+        Particle.publish("State","Taking a Nap",PRIVATE);
       }
       delay(1000);                                                      // Time to send last update
       disconnectFromParticle();                                         // If connected, we need to disconned and power down the modem
@@ -402,7 +401,7 @@ void sendEvent()
 {
   char data[256];                                                         // Store the date in this character array - not global
   snprintf(data, sizeof(data), "{\"Temperature\":%4.1f, \"Humidity\":%4.1f, \"LightLevel\":%4.1f, \"Soilmoisture1\":%i, \"Soilmoisture2\":%i, \"waterPressure\":%i, \"Solenoid\":%i, \"Battery\":%i, \"Resets\":%i, \"Alerts\":%i}", current.temperature, current.humidity, current.lightLevel, current.soilMoisture1, current.soilMoisture2, current.pressure, current.solenoidState, sysStatus.stateOfCharge, sysStatus.resetCount, current.alertCount );
-  Particle.publish("Rwanda-Sense-And-Control-2", data, PRIVATE);
+  Particle.publish("Rwanda-Sense-And-Control", data, PRIVATE);
   currentHourlyPeriod = Time.hour();                                      // Change the time period
   dataInFlight = true;                                                    // set the data inflight flag
   webhookTimeStamp = millis();
@@ -444,7 +443,7 @@ bool takeMeasurements() {
     current.lightLevel = lightSensor.get_light_level();
   }
   else current.lightLevel = 0.0;
-  snprintf(lightIntensityString, sizeof(lightIntensityString), "%4.1f lux", current.lightLevel);
+  snprintf(lightLevelString, sizeof(lightLevelString), "%4.1f lux", current.lightLevel);
 
   if (sysStatus.soilSensorConfig == 1) current.soilMoisture1 = map(analogRead(soilPin1),0,3722,0,100);             // Sensor puts out 0-3V for 0% to 100% soil moisuture
   else current.soilMoisture1 = 0;
