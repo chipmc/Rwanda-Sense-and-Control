@@ -23,11 +23,13 @@
 // v13 - Fixed Solar charging and set default hold time to 20mSec
 // v14 - Added switches to determine configuration / Fixes Solenoid function as well
 // v15 - Bug fixes and interface enhancements - added support for light sensor and a new webhook - deviceOS@1.5.1-rc2
+// v16 - Fixed light level readings
+// v17 - Fixed issue where SHT-31 initialization reported true even if no sensor present
 
 // Particle Product definitions
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(15);
-const char releaseNumber[6] = "15";                  // Displays the release on the menu 
+PRODUCT_VERSION(17);
+const char releaseNumber[6] = "17";                  // Displays the release on the menu 
 
 
 // Included Libraries
@@ -65,7 +67,7 @@ struct systemStatus_structure {                     // currently 14 bytes long
   uint8_t lowPowerMode;                             // Energy conserving mode
   uint8_t lowBatteryMode;                           // Reduced functionality when low battery conditiions exist
   int stateOfCharge;                                // Battery charge level
-  uint8_t SHT_31config;                             // Do we have a temp / humidity sensor or not
+  uint8_t TempHumidConfig;                          // Do we have a temp / humidity sensor or not
   uint8_t powerState;                               // Stores the current power state
   uint8_t soilSensorConfig;                         // Number of soil sensors - 0,1,2
   uint8_t pressureSensorConfig;                     // Pressure sensor or not - 0,1
@@ -181,12 +183,13 @@ void setup()                                                      // Note: Disco
   Particle.function("LowPowerMode",setLowPowerMode);
   Particle.function("Solar-Mode",setSolarMode);
   Particle.function("Verbose-Mode",setVerboseMode);
-  Particle.function("ContolValve",contolValve);
+  Particle.function("Watering",contolValve);
   Particle.function("SetHoldTime",setHoldTimeMillis);
   Particle.function("SetSoilSensors",setSoilSensors);
   Particle.function("SetPressureSensor", setPressureSensor);
   Particle.function("SetLightSensor",setLightSensor);
   Particle.function("SolenoidPresent",setSolenoidPresent);
+  Particle.function("SetTempHumidSensor",setTempHumidSensor);
 
   if (MemVersionNumber != EEPROM.read(MEM_MAP::versionAddr)) {          // Check to see if the memory map is the right version
     EEPROM.put(MEM_MAP::versionAddr,MemVersionNumber);
@@ -197,13 +200,11 @@ void setup()                                                      // Note: Disco
 
   EEPROM.get(MEM_MAP::systemStatusAddr,sysStatus);                      // Load the System Status Object
 
-  if (!tempHumidSensor.begin(0x44)) {                                             // Set to 0x45 for alternate i2c addr
-    snprintf(StartupMessage,sizeof(StartupMessage),"Could not find SHT31");
-    sysStatus.SHT_31config = 0;
+  if (sysStatus.TempHumidConfig) {                                         // If there is a sensor present - initialize it   
+    tempHumidSensor.begin(0x44);                                        // Set to 0x45 for alternate i2c addr 
   }
-  else sysStatus.SHT_31config = 1;
 
-  if (sysStatus.lightSensorConfig) {                                  // This will tell us if we need to initialize the sensor or not
+  if (sysStatus.lightSensorConfig) {                                    // This will tell us if we need to initialize the sensor or not
     lightSensor.begin();
     lightSensor.set_sensor_mode(BH1750::forced_mode_high_res);
   }
@@ -216,8 +217,8 @@ void setup()                                                      // Note: Disco
     fullModemReset();                                                   // This will reset the modem and the device will reboot
   }
     
-  if (sysStatus.solenoidHoldTime < 0 || sysStatus.solenoidHoldTime > 100) { // Check for reasonable value
-    sysStatus.solenoidHoldTime = 20;                                      // Set a reasonable value
+  if (sysStatus.solenoidHoldTime <= 0 || sysStatus.solenoidHoldTime > 100) { // Check for reasonable value
+    sysStatus.solenoidHoldTime = 15;                                      // Set a reasonable value
   }
   snprintf(holdTimeStr,sizeof(holdTimeStr),"%i mSec",sysStatus.solenoidHoldTime); // Load the string for the Particle variable
   
@@ -401,7 +402,7 @@ void UbidotsHandler(const char *event, const char *data) {            // Looks a
 bool takeMeasurements() {
   // Read values from the sensor
 
-  if (sysStatus.SHT_31config) {                                             // Only read the sensor if it is present
+  if (sysStatus.TempHumidConfig) {                                             // Only read the sensor if it is present
     current.temperature = tempHumidSensor.readTemperature();
     current.humidity = tempHumidSensor.readHumidity();
   }
@@ -410,6 +411,7 @@ bool takeMeasurements() {
   snprintf(humidityString,sizeof(humidityString), "%4.1f %%", current.humidity);
 
   if (sysStatus.lightSensorConfig) {
+    lightSensor.make_forced_measurement();
     current.lightLevel = lightSensor.get_light_level();
   }
   else current.lightLevel = 0.0;
@@ -505,7 +507,7 @@ int setSolarMode(String command) // Function to force sending data in current ho
     sysStatus.solarPowerMode = true;
     systemStatusWriteNeeded = true;
     PMICreset();                                               // Change the power management Settings
-    Particle.publish("Mode","Set Solar Powered Mode",PRIVATE);
+    Particle.publish("Config","Set Solar Powered Mode",PRIVATE);
     return 1;
   }
   else if (command == "0")
@@ -513,7 +515,7 @@ int setSolarMode(String command) // Function to force sending data in current ho
     sysStatus.solarPowerMode = false;
     systemStatusWriteNeeded = true;
     PMICreset();                                                // Change the power management settings
-    Particle.publish("Mode","Cleared Solar Powered Mode",PRIVATE);
+    Particle.publish("Config","Cleared Solar Powered Mode",PRIVATE);
     return 1;
   }
   else return 0;
@@ -547,21 +549,21 @@ int setSoilSensors (String command) // Function to force sending data in current
   {
     sysStatus.soilSensorConfig = 0;
     systemStatusWriteNeeded = true;
-    Particle.publish("Mode","No Soil Sensors",PRIVATE);
+    Particle.publish("Config","No Soil Sensors",PRIVATE);
     return 1;
   }
   else if (command == "1")
   {
     sysStatus.soilSensorConfig = 1;
     systemStatusWriteNeeded = true;
-    Particle.publish("Mode","One Soil Sensor",PRIVATE);
+    Particle.publish("Config","One Soil Sensor",PRIVATE);
     return 1;
   }
     else if (command == "2")
   {
     sysStatus.soilSensorConfig = 2;
     systemStatusWriteNeeded = true;
-    Particle.publish("Mode","Two Soil Sensors",PRIVATE);
+    Particle.publish("Config","Two Soil Sensors",PRIVATE);
     return 1;
   }
   else return 0;
@@ -573,14 +575,14 @@ int setPressureSensor (String command) // Function to force sending data in curr
   {
     sysStatus.pressureSensorConfig = 0;
     systemStatusWriteNeeded = true;
-    Particle.publish("Mode","No Pressure Sensor",PRIVATE);
+    Particle.publish("Config","No Pressure Sensor",PRIVATE);
     return 1;
   }
   else if (command == "1")
   {
     sysStatus.pressureSensorConfig = 1;
     systemStatusWriteNeeded = true;
-    Particle.publish("Pressure Sensor Present",PRIVATE);
+    Particle.publish("Config","Pressure Sensor Present",PRIVATE);
     return 1;
   }
   else return 0;
@@ -592,7 +594,7 @@ int setLightSensor (String command) // Function to force sending data in current
   {
     sysStatus.lightSensorConfig = 0;
     systemStatusWriteNeeded = true;
-    Particle.publish("Mode","No Light Sensor",PRIVATE);
+    Particle.publish("Config","No Light Sensor",PRIVATE);
     return 1;
   }
   else if (command == "1")
@@ -601,7 +603,27 @@ int setLightSensor (String command) // Function to force sending data in current
     systemStatusWriteNeeded = true;
     lightSensor.begin();
     lightSensor.set_sensor_mode(BH1750::forced_mode_high_res);
-    Particle.publish("Mode","Light Sensor Present",PRIVATE);
+    Particle.publish("Config","Light Sensor Present",PRIVATE);
+    return 1;
+  }
+  else return 0;
+}
+
+int setTempHumidSensor (String command) // Function to force sending data in current hour
+{
+  if (command == "0")
+  {
+    sysStatus.TempHumidConfig = 0;
+    systemStatusWriteNeeded = true;
+    Particle.publish("Config","No Temp / Humidity Sensor Present",PRIVATE);
+    return 1;
+  }
+  else if (command == "1")
+  {
+    sysStatus.TempHumidConfig = 1;
+    systemStatusWriteNeeded = true;
+    tempHumidSensor.begin(0x44);                                        // Set to 0x45 for alternate i2c addr 
+    Particle.publish("Config","Temp / Humidity Sensor Present",PRIVATE);
     return 1;
   }
   else return 0;
@@ -612,16 +634,32 @@ int setSolenoidPresent (String command) // Function to force sending data in cur
   if (command == "Yes" || command == "yes") {
     sysStatus.solenoidConfig = 1;
     systemStatusWriteNeeded = true;
-    Particle.publish("Mode","Solenoid Attached",PRIVATE);
+    Particle.publish("Config","Solenoid Attached",PRIVATE);
     return 1;
   }
   else if (command == "No" || command == "no") {
     sysStatus.solenoidConfig = 0;
     systemStatusWriteNeeded = true;
-    Particle.publish("Mode","No Solenoid Attached",PRIVATE);
+    Particle.publish("Config","No Solenoid Attached",PRIVATE);
     return 1;
   }
   else return 0;
+}
+
+
+int setHoldTimeMillis(String command)                                       // This is the amount of time in seconds we will wait before starting a new session
+{
+  char * pEND;
+  int holdTimeMillis = strtol(command,&pEND,10);                        // Looks for the first float and interprets it
+  if ((holdTimeMillis < 0) || (holdTimeMillis > 5000)) return 0;        // Make sure it falls in a valid range or send a "fail" result
+  sysStatus.solenoidHoldTime = holdTimeMillis;                          // debounce is how long we must space events to prevent overcounting
+  systemStatusWriteNeeded = true;
+  snprintf(holdTimeStr,sizeof(holdTimeStr),"Hold Time set to %i mSec",sysStatus.solenoidHoldTime);
+  if (sysStatus.verboseMode && Particle.connected()) {                                                  // Publish result if feeling verbose
+    waitUntil(meterParticlePublish);
+    Particle.publish("Config",holdTimeStr, PRIVATE);
+  }
+  return 1;                                                           // Returns 1 to let the user know if was reset
 }
 
 int setVerboseMode(String command) // Function to force sending data in current hour
@@ -650,7 +688,7 @@ int setLowPowerMode(String command)                                   // This is
   {
     if (sysStatus.verboseMode && Particle.connected()) {
       waitUntil(meterParticlePublish);
-      Particle.publish("Mode","Low Power", PRIVATE);
+      Particle.publish("Mode","Low Power Mode", PRIVATE);
     }
     sysStatus.lowPowerMode = true;
   }
@@ -673,7 +711,7 @@ int contolValve(String command)                                   // Function to
     digitalWrite(solEnablePin,LOW);                               // Enable the solenoid
     delay(sysStatus.solenoidHoldTime);
     digitalWrite(solEnablePin,HIGH);                              // Diable the solenoid
-    Particle.publish("Solenoid","Open the Valve",PRIVATE);
+    Particle.publish("Watering","Open the Valve",PRIVATE);
     return 1;
   }
   else if (command == "Off") {                                     // Close the water valve
@@ -681,26 +719,12 @@ int contolValve(String command)                                   // Function to
     digitalWrite(solEnablePin,LOW);                               // Enable the solenoid
     delay(sysStatus.solenoidHoldTime);
     digitalWrite(solEnablePin,HIGH);                              // Diable the solenoid
-    Particle.publish("Solenoid","Close the valve",PRIVATE);
+    Particle.publish("Watering","Close the valve",PRIVATE);
     return 1;
   }
   else return 0;
 }
 
-int setHoldTimeMillis(String command)                                       // This is the amount of time in seconds we will wait before starting a new session
-{
-  char * pEND;
-  int holdTimeMillis = strtol(command,&pEND,10);                        // Looks for the first float and interprets it
-  if ((holdTimeMillis < 0) || (holdTimeMillis > 5000)) return 0;        // Make sure it falls in a valid range or send a "fail" result
-  sysStatus.solenoidHoldTime = holdTimeMillis;                          // debounce is how long we must space events to prevent overcounting
-  systemStatusWriteNeeded = true;
-  snprintf(holdTimeStr,sizeof(holdTimeStr),"%i mSec",sysStatus.solenoidHoldTime);
-  if (sysStatus.verboseMode && Particle.connected()) {                                                  // Publish result if feeling verbose
-    waitUntil(meterParticlePublish);
-    Particle.publish("HoldTime",holdTimeStr, PRIVATE);
-  }
-  return 1;                                                           // Returns 1 to let the user know if was reset
-}
 
 void publishStateTransition(void)
 {
