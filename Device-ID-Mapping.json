@@ -1,0 +1,13 @@
+{ "index": { "_id": device_1 }}
+{
+	“device_id”:”xxxxxxxx”x:,
+	"device_location”:
+	{
+		"type":"Point",
+		"coordinates"[-122.400152,37.793199]
+	},
+	“device_cell_id”:”1234343553535352355”,
+	“device_assigned_project”:”risa_dssd”,
+	“device_assigned_field”:”home_thom”,
+	“device_assigned_field_location”:”home_garden_1”,
+}

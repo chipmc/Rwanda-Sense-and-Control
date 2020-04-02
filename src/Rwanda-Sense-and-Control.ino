@@ -25,11 +25,12 @@
 // v15 - Bug fixes and interface enhancements - added support for light sensor and a new webhook - deviceOS@1.5.1-rc2
 // v16 - Fixed light level readings
 // v17 - Fixed issue where SHT-31 initialization reported true even if no sensor present
+// v18 - Fix for the soil moisture bug
 
 // Particle Product definitions
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(17);
-const char releaseNumber[6] = "17";                  // Displays the release on the menu 
+PRODUCT_VERSION(19);
+const char releaseNumber[6] = "19";                  // Displays the release on the menu 
 
 
 // Included Libraries
@@ -86,7 +87,7 @@ struct currentStatus_structure {                    // currently 10 bytes long
   unsigned long lastCountTime;                      // When did we record our last count
   float temperature;                                // Current Temperature
   float humidity;                                   // Current Humidity
-  float lightLevel;                             // Light level in lux
+  float lightLevel;                                 // Light level in lux
   int alertCount;                                   // What is the current alert count
 } current;
 
@@ -373,6 +374,8 @@ void sendEvent()
   char data[256];                                                         // Store the date in this character array - not global
   snprintf(data, sizeof(data), "{\"Temperature\":%4.1f, \"Humidity\":%4.1f, \"LightLevel\":%4.1f, \"Soilmoisture1\":%i, \"Soilmoisture2\":%i, \"waterPressure\":%i, \"Solenoid\":%i, \"Battery\":%i, \"Resets\":%i, \"Alerts\":%i}", current.temperature, current.humidity, current.lightLevel, current.soilMoisture1, current.soilMoisture2, current.pressure, current.solenoidState, sysStatus.stateOfCharge, sysStatus.resetCount, current.alertCount );
   Particle.publish("Rwanda-Sense-And-Control", data, PRIVATE);
+  Particle.publish("Rwanda-Sense-And-Control-Elastic", data, PRIVATE);
+  
   currentHourlyPeriod = Time.hour();                                      // Change the time period
   dataInFlight = true;                                                    // set the data inflight flag
   webhookTimeStamp = millis();
@@ -417,7 +420,7 @@ bool takeMeasurements() {
   else current.lightLevel = 0.0;
   snprintf(lightLevelString, sizeof(lightLevelString), "%4.1f lux", current.lightLevel);
 
-  if (sysStatus.soilSensorConfig == 1) current.soilMoisture1 = map(analogRead(soilPin1),0,3722,0,100);             // Sensor puts out 0-3V for 0% to 100% soil moisuture
+  if (sysStatus.soilSensorConfig >= 1) current.soilMoisture1 = map(analogRead(soilPin1),0,3722,0,100);             // Sensor puts out 0-3V for 0% to 100% soil moisuture
   else current.soilMoisture1 = 0;
   if (sysStatus.soilSensorConfig == 2)  current.soilMoisture2 = map(analogRead(soilPin2),0,3722,0,100);
   else current.soilMoisture2 = 0;
@@ -427,6 +430,7 @@ bool takeMeasurements() {
   else sysStatus.pressureSensorConfig = 0;
 
   if (Cellular.ready()) getSignalStrength();                          // Test signal strength if the cellular modem is on and ready
+  
   sysStatus.stateOfCharge = int(batteryMonitor.getSoC());                       // Percentage of full charge
   snprintf(batteryString, sizeof(batteryString), "%i %%", sysStatus.stateOfCharge);
 
