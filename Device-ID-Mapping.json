@@ -1,210 +1,29 @@
-{ "index": { "_id": device_1 }}
-{
-	“device_id”:"e00fce6828bd9536ad9d63f5":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600477708",
-	"device_name":"iDD_HCoE_001"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_1”,
-}
-
-{ "index": { "_id": device_3 }}
-{
-	“device_id”:"e00fce68ef19d74be9b578c9":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600476981",
-	"device_name":"iDD_HCoE_003"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_3”,
-}
-
-{ "index": { "_id": device_4 }}
-{
-	“device_id”:"e00fce681a574a73b94c30c5":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600476288",
-	"device_name":"iDD_HCoE_004"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_4”,
-}
-
-{ "index": { "_id": device_5 }}
-{
-	“device_id”:"e00fce68d8be27eb05f0634e":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600475629",
-	"device_name":"iDD_HCoE_005"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_5”,
-}
-
-{ "index": { "_id": device_6 }}
-{
-	“device_id”:"e00fce68048d85934b4d0ec4":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600475579",
-	"device_name":"iDD_HCoE_006"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_6”,
-}
-
-{ "index": { "_id": device_7 }}
-{
-	“device_id”:"e00fce680a49efe90aa9aec4":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600475132",
-	"device_name":"iDD_HCoE_007"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_7”,
-}
-
-{ "index": { "_id": device_8 }}
-{
-	“device_id”:"e00fce68eb8ec63124ed28ca":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600478326",
-	"device_name":"iDD_HCoE_008"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_8”,
-}
-
-
-{ "index": { "_id": device_9 }}
-{
-	“device_id”:”e00fce6826fd43ca406dcbd1":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:”89314404000600477039”,
-	"device_name":"iDD_HCoE_009"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_9”,
-}
-
-{ "index": { "_id": device_10 }}
-{
-	“device_id”:"e00fce68149319a86917c511":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600477666",
-	"device_name":"iDD_HCoE_010"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_10”,
-}
-
-{ "index": { "_id": device_11 }}
-{
-	“device_id”:"e00fce68ce771c94182bb061":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600477351",
-	"device_name":"iDD_HCoE_011"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_11”,
-}
-
-{ "index": { "_id": device_12 }}
-{
-	“device_id”:"e00fce6867ed4984e881a155":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600477211",
-	"device_name":"iDD_HCoE_012"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_12”,
-}
-
-{ "index": { "_id": device_13 }}
-{
-	“device_id”:"e00fce68efc0b12c02e6c0bd":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600475686",
-	"device_name":"iDD_HCoE_013"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_13”,
-}
-
-{ "index": { "_id": device_14 }}
-{
-	“device_id”:"e00fce689783e0910efaa981":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89314404000600474663",
-	"device_name":"iDD_HCoE_014"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_14”,
-}
-
-{ "index": { "_id": device_16 }}
-{
-	“device_id”:"e00fce6888de6f2c2b6b27da":,
-	"device_location”:
-	{
-		"type":"Point",
-		"coordinates"[-1.9397,30.0557]
-	},
-	“device_cell_id”:"89014103259631201020",
-	"device_name":"Rwanda-Dev-002"
-	“device_assigned_project”:”risa_dssd”,
-	“device_assigned_field”:”home_thom”,
-	“device_assigned_field_location”:”home_garden_16”,
+{ "index": {"_id":"device_1"}}
+{"device_id":"e00fce6828bd9536ad9d63f5","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600477708","device_name":"iDD_HCoE_001","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_1"}
+{ "index": { "_id":"device_3"}}
+{"device_id":"e00fce68ef19d74be9b578c9","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600476981","device_name":"iDD_HCoE_003","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_3"}
+{ "index": { "_id": "device_4" }}
+{"device_id":"e00fce681a574a73b94c30c5","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600476288","device_name":"iDD_HCoE_004","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_4"}
+{ "index": { "_id": "device_5" }}
+{"device_id":"e00fce68d8be27eb05f0634e","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600475629","device_name":"iDD_HCoE_005","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_5"}
+{ "index": { "_id": "device_6" }}
+{"device_id":"e00fce68048d85934b4d0ec4","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600475579","device_name":"iDD_HCoE_006","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_6"}
+{ "index": { "_id": "device_7" }}
+{"device_id":"e00fce68048d85934b4d0ec4","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600475132","device_name":"iDD_HCoE_007","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_7"}
+{ "index": { "_id": "device_8" }}
+{"device_id":"e00fce68eb8ec63124ed28ca","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600478326","device_name":"iDD_HCoE_008","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_8"}
+{ "index": { "_id": "device_9" }}
+{"device_id":"e00fce6826fd43ca406dcbd1","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600477039","device_name":"iDD_HCoE_009","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_9"}
+{ "index": { "_id": "device_10" }}
+{"device_id":"e00fce68149319a86917c511","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600477666","device_name":"iDD_HCoE_010","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_10"}
+{ "index": { "_id": "device_11" }}
+{"device_id":"e00fce68ce771c94182bb061","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600477351","device_name":"iDD_HCoE_011","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_11"}
+{ "index": { "_id": "device_12" }}
+{"device_id":"e00fce6867ed4984e881a155","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600477211","device_name":"iDD_HCoE_012","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_12"}
+{ "index": { "_id": "device_13" }}
+{"device_id":"e00fce68efc0b12c02e6c0bd","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600477351","device_name":"iDD_HCoE_013","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_13"}
+{ "index": { "_id": "device_14" }}
+{"device_id":"e00fce689783e0910efaa981","device_location":[-1.9397,30.0557],"device_cell_id":"89314404000600474663","device_name":"iDD_HCoE_014","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_14"}
+{ "index": { "_id": "device_unknown1" }}
+{"device_id":"e00fce680a49efe90aa9aec4","device_location":[-1.9397,30.0557],"device_cell_id":"unknown","device_name":"unknown1","device_assigned_project":"risa_dssd","device_assigned_field":"home_thom","device_assigned_field_location":"home_garden_unknown1"}
 }
