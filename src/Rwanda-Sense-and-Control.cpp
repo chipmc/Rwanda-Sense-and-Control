@@ -12,7 +12,7 @@
 * Seeed Studio for SHT-31 - http://wiki.seeedstudio.com/Grove-TempAndHumi_Sensor-SHT31/
 * Author: Chip McClelland chip@seeinsights.com
 * Sponsor: Thom Harvey ID&D
-* Date: 27 Jan 2020 
+* Date: 27 Jan 2020
 */
 
 // v1 - Initial Release Temp / Humidity / Soil Functionality
@@ -35,6 +35,7 @@
 // v19 - Adding support for watering - fixed threshold and period, hourly tests
 // v20 - updated to Sleep 2.0
 // v21 - Added Battery Context and Reporting, Fixed bug on lowPowerMode console status, Fixed cellular status bug
+// v22 - All about reducing config errors on deployment - Made Solar Power Mode the default, set to lowPowerMode after 30 minutes and turns off verboseMode each day
 
 // Particle Product definitions
 void setup();
@@ -48,7 +49,6 @@ bool connectToParticle();
 bool disconnectFromParticle();
 bool notConnected();
 int measureNow(String command);
-int setSolarMode(String command);
 void PMICreset();
 int setSoilSensors (String command);
 int setPressureSensor (String command);
@@ -59,13 +59,14 @@ int setVerboseMode(String command);
 int setLowPowerMode(String command);
 int controlValve(String command);
 void wateringTimerISR();
+void awakeTimerISR();
 void publishStateTransition(void);
 bool meterParticlePublish(void);
 void fullModemReset();
-#line 34 "/Users/chipmc/Documents/Maker/Particle/Projects/Rwanda-Sense-and-Control/src/Rwanda-Sense-and-Control.ino"
+#line 35 "/Users/chipmc/Documents/Maker/Particle/Projects/Rwanda-Sense-and-Control/src/Rwanda-Sense-and-Control.ino"
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(21);
-const char releaseNumber[6] = "21";                  // Displays the release on the menu 
+PRODUCT_VERSION(22);
+const char releaseNumber[6] = "22";                  // Displays the release on the menu
 
 
 // Included Libraries
@@ -80,9 +81,9 @@ SYSTEM_THREAD(ENABLED);                             // Means my code will not be
 STARTUP(System.enableFeature(FEATURE_RESET_INFO));
 FuelGauge batteryMonitor;                           // Prototype for the fuel gauge (included in Particle core library)
 SystemPowerConfiguration conf;                      // Initalize the PMIC class so you can call the Power Management functions below.
-SystemSleepConfiguration config;                    // Initialize the Sleep 2.0 API 
-Adafruit_SHT31 tempHumidSensor = Adafruit_SHT31();            // Temp and Humidity Sensor - Grove connected on i2c
-BH1750 lightSensor(0x23, Wire);                          // Light sensor measures light level in Lux    
+SystemSleepConfiguration config;                    // Initialize the Sleep 2.0 API
+Adafruit_SHT31 tempHumidSensor = Adafruit_SHT31();  // Temp and Humidity Sensor - Grove connected on i2c
+BH1750 lightSensor(0x23, Wire);                     // Light sensor measures light level in Lux
 
 namespace MEM_MAP {                                 // Moved to namespace instead of #define to limit scope
   enum Addresses {
@@ -96,9 +97,9 @@ const int MemVersionNumber = 2;                    // Increment this number each
 
 struct systemStatus_structure {                     // currently 14 bytes long
   uint8_t structuresVersion;                        // Version of the data structures (system and data)
-  uint8_t placeholder;                              // available for future use                      
+  uint8_t placeholder;                              // available for future use
   uint8_t metricUnits;                              // Status of key system states
-  uint8_t connectedStatus;                          // Connected or not 
+  uint8_t connectedStatus;                          // Connected or not
   uint8_t verboseMode;                              // Extra text to facilitate problem solving
   uint8_t solarPowerMode;                           // Settings appropriate for solar power
   uint8_t lowPowerMode;                             // Energy conserving mode
@@ -117,7 +118,7 @@ struct systemStatus_structure {                     // currently 14 bytes long
 
 struct currentStatus_structure {                    // currently 10 bytes long
   int soilMoisture1;                                // Soil moisutre 0 if not connected
-  int soilMoisture2;                             
+  int soilMoisture2;
   int pressure;                                     // Water line pressure
   int solenoidState;                                // Open (1) or closed (0)
   unsigned long lastCountTime;                      // When did we record our last count
@@ -135,7 +136,8 @@ char stateNames[9][14] = {"Initialize", "Error", "Idle", "Measuring", "Watering"
 State state = INITIALIZATION_STATE;
 State oldState = INITIALIZATION_STATE;
 
-Timer timer(1200000, wateringTimerISR, true);     // 20 minute timer, calls the WateringTimerISR and is a one-shot timer
+Timer wateringTimer(1200000, wateringTimerISR, true);     // 20 minute timer, calls the WateringTimerISR and is a one-shot timer
+Timer awakeTimer(1210000, awakeTimerISR, true);           // 30 minute timer, calles the awakeTimerISR and is one-shot
 
 // Pin Constants
 const int blueLED =       D7;                     // This LED is on the Electron itself
@@ -145,7 +147,7 @@ const int soilPin2 =      A1;                     // Second Soil Sensor
 const int pressurePin =   A2;                     // Pressure Sensor
 const int sensorShutdown =A5;                     // Disables the 5V sensors - Pressure / Soil1 and Soil 2
 const int solEnablePin =  D3;                     // Active LOW - enables the solenoid
-const int solDirection =  D2;                     // Soleniod direction HIGH = ON, 
+const int solDirection =  D2;                     // Soleniod direction HIGH = ON,
 
 
 // Timing Variables
@@ -194,8 +196,8 @@ void setup()                                                      // Note: Disco
   pinMode(pressurePin, INPUT);
   pinMode(sensorShutdown, OUTPUT);
   digitalWrite(sensorShutdown,HIGH);                              // Enable the sensors
-  pinMode(solEnablePin,OUTPUT);                                     
-  pinMode(solDirection,OUTPUT);                                      
+  pinMode(solEnablePin,OUTPUT);
+  pinMode(solDirection,OUTPUT);
   digitalWrite(solEnablePin,HIGH);                               // Disables the solenoid valve
   digitalWrite(solDirection,LOW);                                // Set to close the valve
 
@@ -219,7 +221,6 @@ void setup()                                                      // Note: Disco
 
   Particle.function("Measure-Now",measureNow);
   Particle.function("LowPowerMode",setLowPowerMode);
-  Particle.function("Solar-Mode",setSolarMode);
   Particle.function("Verbose-Mode",setVerboseMode);
   Particle.function("Watering",controlValve);
   Particle.function("SetSoilSensors",setSoilSensors);
@@ -238,8 +239,8 @@ void setup()                                                      // Note: Disco
   EEPROM.get(MEM_MAP::systemStatusAddr,sysStatus);                      // Load the System Status Object
   EEPROM.get(MEM_MAP::currentStatusAddr,current);
 
-  if (sysStatus.TempHumidConfig) {                                         // If there is a sensor present - initialize it   
-    tempHumidSensor.begin(0x44);                                        // Set to 0x45 for alternate i2c addr 
+  if (sysStatus.TempHumidConfig) {                                         // If there is a sensor present - initialize it
+    tempHumidSensor.begin(0x44);                                        // Set to 0x45 for alternate i2c addr
   }
 
   if (sysStatus.lightSensorConfig) {                                    // This will tell us if we need to initialize the sensor or not
@@ -255,12 +256,17 @@ void setup()                                                      // Note: Disco
     fullModemReset();                                                   // This will reset the modem and the device will reboot
   }
 
-  (sysStatus.lowPowerMode) ? strcpy(lowPowerModeStr,"true") : strcpy(lowPowerModeStr,"false");
-    
+  if(!sysStatus.lowPowerMode) {
+    strcpy(lowPowerModeStr,"False");
+    awakeTimer.start();
+  }
+  else strcpy(lowPowerModeStr,"True");
+
   sysStatus.solenoidHoldTime = 5;                                      // Set a reasonable value - based on testing 8mSec
-  
+
   if (sysStatus.solenoidConfig && current.solenoidState) controlValve("Off");   // Can start watering until we get to the main loop
-  
+
+  sysStatus.solarPowerMode = true;                                      // Set this as a default
   PMICreset();                                                          // Executes commands that set up the PMIC for Solar charging - once we know the Solar Mode
 
   if (!digitalRead(userSwitch)) setLowPowerMode("0");                   // Rescue mode to take out of low power mode and connect
@@ -288,7 +294,7 @@ void loop()
     if (systemStatusWriteNeeded) {
       EEPROM.put(MEM_MAP::systemStatusAddr,sysStatus);
       systemStatusWriteNeeded = false;
-    } 
+    }
     if (currentStatusWriteNeeded) {
       EEPROM.put(MEM_MAP::currentStatusAddr ,current);
       currentStatusWriteNeeded = false;
@@ -314,14 +320,14 @@ void loop()
     else state = REPORTING_STATE;
     break;
 
-  case WATERING_STATE:                                                    // This state will examing soil values and decide on watering 
+  case WATERING_STATE:                                                    // This state will examing soil values and decide on watering
     if (wateringTimerFlag) {
       controlValve("Off");
       wateringTimerFlag = false;
     }
     else if (current.soilMoisture1 < 30.0 && !current.solenoidState) {  // Water if dry and if we are not already watering
       controlValve("On");
-      timer.start();                                                    // Start the timer to keep track of the watering time
+      wateringTimer.start();                                                    // Start the timer to keep track of the watering time
     }
     state = REPORTING_STATE;
     break;
@@ -329,7 +335,11 @@ void loop()
   case REPORTING_STATE:
     if (sysStatus.verboseMode && state != oldState) publishStateTransition();
     if (Particle.connected()) {
-      if (Time.hour() == 12) Particle.syncTime();                         // Set the clock each day at noon
+      if (Time.hour() == 0) {
+        sysStatus.verboseMode = false;                                    // Turn off Verbose mode
+        Particle.syncTime();                                              // Set the clock each day
+        current.alertCount = sysStatus.resetCount = 0;                    // Reset these each day as well
+      }
       sendEvent();                                                        // Send data to Ubidots
       state = RESP_WAIT_STATE;                                            // Wait for Response
     }
@@ -420,15 +430,19 @@ void sendEvent()
 {
   char data[256];                                                         // Store the date in this character array - not global
   snprintf(data, sizeof(data), "{\"Temperature\":%4.1f, \"Humidity\":%4.1f, \"LightLevel\":%4.1f, \"Soilmoisture1\":%i, \"Soilmoisture2\":%i, \"waterPressure\":%i, \"Solenoid\":%i, \"Battery\":%i, \"Resets\":%i, \"Alerts\":%i}", current.temperature, current.humidity, current.lightLevel, current.soilMoisture1, current.soilMoisture2, current.pressure, current.solenoidState, sysStatus.stateOfCharge, sysStatus.resetCount, current.alertCount );
-  Particle.publish("Rwanda-Sense-And-Control", data, PRIVATE);
+  waitUntil(meterParticlePublish);
   Particle.publish("Rwanda-Sense-And-Control-Elastic", data, PRIVATE);
-  
+  waitUntil(meterParticlePublish);
+  Particle.publish("agriculture-aws-webhook",data,PRIVATE);
+  waitUntil(meterParticlePublish);
+  Particle.publish("Rwanda-Sense-And-Control", data, PRIVATE);
+
   currentHourlyPeriod = Time.hour();                                      // Change the time period
   dataInFlight = true;                                                    // set the data inflight flag
   webhookTimeStamp = millis();
 }
 
-void UbidotsHandler(const char *event, const char *data) {            // Looks at the response from Ubidots - Will reset Photon if no successful response                                                                   
+void UbidotsHandler(const char *event, const char *data) {            // Looks at the response from Ubidots - Will reset Photon if no successful response
   char responseString[64];
     // Response is only a single number thanks to Template
   if (!strlen(data)) {                                                // No data in response - Error
@@ -471,13 +485,13 @@ bool takeMeasurements() {
   else current.soilMoisture1 = 0;
   if (sysStatus.soilSensorConfig == 2)  current.soilMoisture2 = map(analogRead(soilPin2),0,3722,0,100);
   else current.soilMoisture2 = 0;
-  
-  
+
+
   if (sysStatus.pressureSensorConfig == 1) current.pressure = map(analogRead(pressurePin),428,2816,0,30);         // Sensor range is 0.5V (0 psi) to 4.5V (30psi) and there is a voltage divider (330 / 480) so...
   else sysStatus.pressureSensorConfig = 0;
 
   if (Cellular.ready()) getSignalStrength();                          // Test signal strength if the cellular modem is on and ready
-  
+
   sysStatus.stateOfCharge = int(System.batteryCharge());                       // Percentage of full charge
   snprintf(batteryString, sizeof(batteryString), "%i %%", sysStatus.stateOfCharge);
 
@@ -528,7 +542,7 @@ bool connectToParticle() {
 bool disconnectFromParticle()                                     // Ensures we disconnect cleanly from Particle
 {
   Particle.disconnect();
-  waitFor(notConnected, 15000);                                   // make sure before turning off the cellular modem                              
+  waitFor(notConnected, 15000);                                   // make sure before turning off the cellular modem
   Cellular.off();
   delay(2000);                                                    // Bummer but only should happen once an hour
   return true;
@@ -548,27 +562,6 @@ int measureNow(String command) // Function to force sending data in current hour
   if (command == "1")
   {
     state = MEASURING_STATE;
-    return 1;
-  }
-  else return 0;
-}
-
-int setSolarMode(String command) // Function to force sending data in current hour
-{
-  if (command == "1")
-  {
-    sysStatus.solarPowerMode = true;
-    systemStatusWriteNeeded = true;
-    PMICreset();                                               // Change the power management Settings
-    Particle.publish("Config","Set Solar Powered Mode",PRIVATE);
-    return 1;
-  }
-  else if (command == "0")
-  {
-    sysStatus.solarPowerMode = false;
-    systemStatusWriteNeeded = true;
-    PMICreset();                                                // Change the power management settings
-    Particle.publish("Config","Cleared Solar Powered Mode",PRIVATE);
     return 1;
   }
   else return 0;
@@ -675,7 +668,7 @@ int setTempHumidSensor (String command) // Function to force sending data in cur
   {
     sysStatus.TempHumidConfig = 1;
     systemStatusWriteNeeded = true;
-    tempHumidSensor.begin(0x44);                                        // Set to 0x45 for alternate i2c addr 
+    tempHumidSensor.begin(0x44);                                        // Set to 0x45 for alternate i2c addr
     Particle.publish("Config","Temp / Humidity Sensor Present",PRIVATE);
     return 1;
   }
@@ -735,10 +728,11 @@ int setLowPowerMode(String command)                                   // This is
     if (!Particle.connected()) {                                      // In case we are not connected, we will do so now.
       connectToParticle();
       sysStatus.connectedStatus = true;
-    } 
+    }
     waitUntil(meterParticlePublish);
     Particle.publish("Mode","Normal Operations", PRIVATE);
     delay(1000);                                                      // Need to make sure the message gets out.
+    awakeTimer.start();                                               // Wake for 30 minutes - then back to low power mode.  Resets timer if already running
     sysStatus.lowPowerMode = false;                                   // update the variable used for console status
     strcpy(lowPowerModeStr,"False");                                  // Use capitalization so we know that we set this.
   }
@@ -773,6 +767,11 @@ void wateringTimerISR() {
   wateringTimerFlag = true;
 }
 
+void awakeTimerISR() {
+  sysStatus.lowPowerMode = true;
+  systemStatusWriteNeeded = true;
+}
+
 
 void publishStateTransition(void)
 {
@@ -792,7 +791,7 @@ bool meterParticlePublish(void)
   if(millis() - lastPublish >= 1000) {                            // Particle requires metering to once per second
     lastPublish = millis();
     return 1;
-  } 
+  }
   else return 0;
 }
 
