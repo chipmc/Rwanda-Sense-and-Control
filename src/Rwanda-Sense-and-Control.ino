@@ -30,11 +30,12 @@
 // v20 - updated to Sleep 2.0
 // v21 - Added Battery Context and Reporting, Fixed bug on lowPowerMode console status, Fixed cellular status bug
 // v22 - All about reducing config errors on deployment - Made Solar Power Mode the default, set to lowPowerMode after 30 minutes and turns off verboseMode each day
+// v23 - Temp/Humidity "nan" issue and reset cycle fixed. Fixed Solenoid Not present stuck on issue, 
 
 // Particle Product definitions
 PRODUCT_ID(10709);                                   // Connected Counter Header
 PRODUCT_VERSION(22);
-const char releaseNumber[6] = "22";                  // Displays the release on the menu
+const char releaseNumber[6] = "23";                  // Displays the release on the menu
 
 
 // Included Libraries
@@ -207,8 +208,11 @@ void setup()                                                      // Note: Disco
   EEPROM.get(MEM_MAP::systemStatusAddr,sysStatus);                      // Load the System Status Object
   EEPROM.get(MEM_MAP::currentStatusAddr,current);
 
-  if (sysStatus.TempHumidConfig) {                                         // If there is a sensor present - initialize it
-    tempHumidSensor.begin(0x44);                                        // Set to 0x45 for alternate i2c addr
+  if (sysStatus.TempHumidConfig) {                                      // If there is a sensor present - initialize it
+    if (!tempHumidSensor.begin(0x44)) {
+      sysStatus.TempHumidConfig = false;                                // Set to 0x45 for alternate i2c addr - turns off the sensor if it fails to initalize
+      strcpy(StartupMessage,"Temp/Humidity Sensor Failed to Inialize - disabling");
+    } 
   }
 
   if (sysStatus.lightSensorConfig) {                                    // This will tell us if we need to initialize the sensor or not
@@ -235,7 +239,7 @@ void setup()                                                      // Note: Disco
   if (sysStatus.solenoidConfig && current.solenoidState) controlValve("Off");   // Can start watering until we get to the main loop
 
   sysStatus.solarPowerMode = true;                                      // Set this as a default
-  PMICreset();                                                          // Executes commands that set up the PMIC for Solar charging - once we know the Solar Mode
+  setPowerConfig();                                                          // Executes commands that set up the PMIC for Solar charging - once we know the Solar Mode
 
   if (!digitalRead(userSwitch)) setLowPowerMode("0");                   // Rescue mode to take out of low power mode and connect
 
@@ -435,8 +439,12 @@ bool takeMeasurements() {
   // Read values from the sensor
 
   if (sysStatus.TempHumidConfig) {                                             // Only read the sensor if it is present
+    if (isnan(tempHumidSensor.readTemperature())) current.temperature = current.humidity = 0;
+    else {
     current.temperature = tempHumidSensor.readTemperature();
     current.humidity = tempHumidSensor.readHumidity();
+    }
+
   }
   else current.temperature = current.humidity = 0.0;
   snprintf(temperatureString,sizeof(temperatureString), "%4.1f C", current.temperature);
@@ -536,7 +544,7 @@ int measureNow(String command) // Function to force sending data in current hour
 }
 
 // Power Management function
-void PMICreset() {
+void setPowerConfig() {
   if (sysStatus.solarPowerMode) {
     conf.powerSourceMaxCurrent(900)                                  // default is 900mA
     .powerSourceMinVoltage(5080)                                     // Set the lowest input voltage to 5.080 volts best setting for 6V solar panels
@@ -645,6 +653,7 @@ int setTempHumidSensor (String command) // Function to force sending data in cur
 
 int setSolenoidPresent (String command) // Function to force sending data in current hour
 {
+  controlValve("Off");                                            // Make sure it is turned off
   if (command == "Yes" || command == "yes") {
     sysStatus.solenoidConfig = 1;
     systemStatusWriteNeeded = true;
