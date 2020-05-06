@@ -30,12 +30,14 @@
 // v20 - updated to Sleep 2.0
 // v21 - Added Battery Context and Reporting, Fixed bug on lowPowerMode console status, Fixed cellular status bug
 // v22 - All about reducing config errors on deployment - Made Solar Power Mode the default, set to lowPowerMode after 30 minutes and turns off verboseMode each day
-// v23 - Temp/Humidity "nan" issue and reset cycle fixed. Fixed Solenoid Not present stuck on issue, 
+// v23 - Temp/Humidity "nan" issue and reset cycle fixed. Fixed Solenoid Not present stuck on issue
+// v24 - Moving back to PMIC control for charging
+// v25 - Using the setPowerConfiguration API again with new values assigned to better suite a solar implementation
 
 // Particle Product definitions
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(22);
-const char releaseNumber[6] = "23";                  // Displays the release on the menu
+PRODUCT_VERSION(25);
+const char releaseNumber[6] = "25";                  // Displays the release on the menu
 
 
 // Included Libraries
@@ -48,8 +50,6 @@ const char releaseNumber[6] = "23";                  // Displays the release on 
 SYSTEM_MODE(SEMI_AUTOMATIC);                        // This will enable user code to start executing automatically.
 SYSTEM_THREAD(ENABLED);                             // Means my code will not be held up by Particle processes.
 STARTUP(System.enableFeature(FEATURE_RESET_INFO));
-FuelGauge batteryMonitor;                           // Prototype for the fuel gauge (included in Particle core library)
-SystemPowerConfiguration conf;                      // Initalize the PMIC class so you can call the Power Management functions below.
 SystemSleepConfiguration config;                    // Initialize the Sleep 2.0 API
 Adafruit_SHT31 tempHumidSensor = Adafruit_SHT31();  // Temp and Humidity Sensor - Grove connected on i2c
 BH1750 lightSensor(0x23, Wire);                     // Light sensor measures light level in Lux
@@ -255,6 +255,7 @@ void setup()                                                      // Note: Disco
   if(Particle.connected() && sysStatus.verboseMode) Particle.publish("Startup",StartupMessage,PRIVATE);   // Let Particle know how the startup process went
   Serial.println(StartupMessage);
 
+
   systemStatusWriteNeeded = true;                                       // likely something has changed
 }
 
@@ -357,16 +358,17 @@ void loop()
   case LOW_BATTERY_STATE: {                                             // Sleep state but leaves the fuel gauge on
     if (sysStatus.verboseMode && state != oldState) publishStateTransition();
     if (Particle.connected()) {
-      if (sysStatus.verboseMode) {
-        waitUntil(meterParticlePublish);
-        Particle.publish("State","Low Battery - Sleeping",PRIVATE);
-      }
-      delay(1000);                                                      // Time to send last update
+      waitUntil(meterParticlePublish);
+      Particle.publish("State","Low Battery - Sleeping",PRIVATE);
+      delay(2000);                                                      // Time to send last update
       disconnectFromParticle();                                         // If connected, we need to disconned and power down the modem
     }
     digitalWrite(blueLED,LOW);                                          // Turn off the LED
-    int secondsToHour = (60*(60 - Time.minute()));                      // Time till the top of the hour
-    System.sleep(userSwitch,FALLING,secondsToHour);                     // Very deep sleep till the next hour - then resets
+    if (sysStatus.solenoidConfig) controlValve("Off");                  // Make darn sure the water is off
+    delay(5000);
+    long secondsToHour = (60*(60 - Time.minute()));                     // Time till the top of the hour
+    config.mode(SystemSleepMode::STOP).gpio(userSwitch,CHANGE).duration(secondsToHour * 1000);
+    SystemSleepResult result = System.sleep(config);                    // Put the device to sleep
     state = IDLE_STATE;                                                 // Return to the IDLE_STATE
     } break;
 
@@ -468,7 +470,8 @@ bool takeMeasurements() {
 
   if (Cellular.ready()) getSignalStrength();                          // Test signal strength if the cellular modem is on and ready
 
-  sysStatus.stateOfCharge = int(System.batteryCharge());                       // Percentage of full charge
+  // sysStatus.stateOfCharge = int(System.batteryCharge());                       // Percentage of full charge
+  sysStatus.stateOfCharge = int(System.batteryCharge());
   snprintf(batteryString, sizeof(batteryString), "%i %%", sysStatus.stateOfCharge);
 
   getBatteryContext();                                                 // What is the battery doing.
@@ -544,24 +547,30 @@ int measureNow(String command) // Function to force sending data in current hour
 }
 
 // Power Management function
-void setPowerConfig() {
+int setPowerConfig() {
+  SystemPowerConfiguration conf;
+  System.setPowerConfiguration(SystemPowerConfiguration());  // To restore the default configuration
+
   if (sysStatus.solarPowerMode) {
-    conf.powerSourceMaxCurrent(900)                                  // default is 900mA
-    .powerSourceMinVoltage(5080)                                     // Set the lowest input voltage to 5.080 volts best setting for 6V solar panels
-    .batteryChargeCurrent(1024)                                      // default is 512mA matches my 3W panel
-    .batteryChargeVoltage(4208)                                      // Allows us to charge cloe to 100% - battery can't go over 45 celcius
-    .feature(SystemPowerFeature::PMIC_DETECTION)
-    .feature(SystemPowerFeature::USE_VIN_SETTINGS_WITH_USB_HOST) ;
-    System.setPowerConfiguration(conf);
+    conf.powerSourceMaxCurrent(550) // Set maximum current the power source can provide (applies only when powered through VIN)
+        .powerSourceMinVoltage(5080) // Set minimum voltage the power source can provide (applies only when powered through VIN)
+        .batteryChargeCurrent(512) // Set battery charge current
+        .batteryChargeVoltage(4210) // Set battery termination voltage
+        .feature(SystemPowerFeature::USE_VIN_SETTINGS_WITH_USB_HOST); // For the cases where the device is powered through VIN
+                                                                     // but the USB cable is connected to a USB host, this feature flag
+                                                                     // enforces the voltage/current limits specified in the configuration
+                                                                     // (where by default the device would be thinking that it's powered by the USB Host)
+    int res = System.setPowerConfiguration(conf); // returns SYSTEM_ERROR_NONE (0) in case of success
+    return res;
   }
   else  {
-    conf.powerSourceMaxCurrent(1500)                                 // default is 900mA this let's me charge faster
-    .powerSourceMinVoltage(4208)                                     // This is the default value for the Boron
-    .batteryChargeCurrent(1024)                                      // default is 2048mA (011000) = 512mA+1024mA+512mA)
-    .batteryChargeVoltage(4112)                                      // default is 4.112V termination voltage
-    .feature(SystemPowerFeature::PMIC_DETECTION)
-    .feature(SystemPowerFeature::USE_VIN_SETTINGS_WITH_USB_HOST) ;
-    System.setPowerConfiguration(conf);
+    conf.powerSourceMaxCurrent(900)                                   // default is 900mA 
+        .powerSourceMinVoltage(4208)                                     // This is the default value for the Boron
+        .batteryChargeCurrent(1024)                                      // higher charge current from DC-IN when not solar powered
+        .batteryChargeVoltage(4112)                                      // default is 4.112V termination voltage
+        .feature(SystemPowerFeature::USE_VIN_SETTINGS_WITH_USB_HOST) ;
+    int res = System.setPowerConfiguration(conf); // returns SYSTEM_ERROR_NONE (0) in case of success
+    return res;
   }
 }
 
