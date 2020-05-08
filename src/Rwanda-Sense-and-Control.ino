@@ -239,7 +239,7 @@ void setup()                                                      // Note: Disco
   if (sysStatus.solenoidConfig && current.solenoidState) controlValve("Off");   // Can start watering until we get to the main loop
 
   sysStatus.solarPowerMode = true;                                      // Set this as a default
-  setPowerConfig();                                                          // Executes commands that set up the PMIC for Solar charging - once we know the Solar Mode
+  setPowerConfig();                                                     // Executes commands that set up the PMIC for Solar charging - once we know the Solar Mode
 
   if (!digitalRead(userSwitch)) setLowPowerMode("0");                   // Rescue mode to take out of low power mode and connect
 
@@ -566,7 +566,7 @@ int setPowerConfig() {
   else  {
     conf.powerSourceMaxCurrent(900)                                   // default is 900mA 
         .powerSourceMinVoltage(4208)                                     // This is the default value for the Boron
-        .batteryChargeCurrent(1024)                                      // higher charge current from DC-IN when not solar powered
+        .batteryChargeCurrent(900)                                      // higher charge current from DC-IN when not solar powered
         .batteryChargeVoltage(4112)                                      // default is 4.112V termination voltage
         .feature(SystemPowerFeature::USE_VIN_SETTINGS_WITH_USB_HOST) ;
     int res = System.setPowerConfiguration(conf); // returns SYSTEM_ERROR_NONE (0) in case of success

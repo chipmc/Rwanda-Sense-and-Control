@@ -38,6 +38,7 @@
 // v22 - All about reducing config errors on deployment - Made Solar Power Mode the default, set to lowPowerMode after 30 minutes and turns off verboseMode each day
 // v23 - Temp/Humidity "nan" issue and reset cycle fixed. Fixed Solenoid Not present stuck on issue
 // v24 - Moving back to PMIC control for charging
+// v25 - Using the setPowerConfiguration API again with new values assigned to better suite a solar implementation
 
 // Particle Product definitions
 void setup();
@@ -65,10 +66,10 @@ void awakeTimerISR();
 void publishStateTransition(void);
 bool meterParticlePublish(void);
 void fullModemReset();
-#line 37 "/Users/chipmc/Documents/Maker/Particle/Projects/Rwanda-Sense-and-Control/src/Rwanda-Sense-and-Control.ino"
+#line 38 "/Users/chipmc/Documents/Maker/Particle/Projects/Rwanda-Sense-and-Control/src/Rwanda-Sense-and-Control.ino"
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(24);
-const char releaseNumber[6] = "24";                  // Displays the release on the menu
+PRODUCT_VERSION(25);
+const char releaseNumber[6] = "25";                  // Displays the release on the menu
 
 
 // Included Libraries
@@ -270,7 +271,7 @@ void setup()                                                      // Note: Disco
   if (sysStatus.solenoidConfig && current.solenoidState) controlValve("Off");   // Can start watering until we get to the main loop
 
   sysStatus.solarPowerMode = true;                                      // Set this as a default
-  setPowerConfig();                                                          // Executes commands that set up the PMIC for Solar charging - once we know the Solar Mode
+  setPowerConfig();                                                     // Executes commands that set up the PMIC for Solar charging - once we know the Solar Mode
 
   if (!digitalRead(userSwitch)) setLowPowerMode("0");                   // Rescue mode to take out of low power mode and connect
 
@@ -597,7 +598,7 @@ int setPowerConfig() {
   else  {
     conf.powerSourceMaxCurrent(900)                                   // default is 900mA 
         .powerSourceMinVoltage(4208)                                     // This is the default value for the Boron
-        .batteryChargeCurrent(1024)                                      // higher charge current from DC-IN when not solar powered
+        .batteryChargeCurrent(900)                                      // higher charge current from DC-IN when not solar powered
         .batteryChargeVoltage(4112)                                      // default is 4.112V termination voltage
         .feature(SystemPowerFeature::USE_VIN_SETTINGS_WITH_USB_HOST) ;
     int res = System.setPowerConfiguration(conf); // returns SYSTEM_ERROR_NONE (0) in case of success
