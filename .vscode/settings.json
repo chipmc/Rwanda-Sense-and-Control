@@ -8,5 +8,5 @@
     },
     "particle.targetPlatform": "boron",
     "particle.targetDevice": "Rwanda-Dev-002",
-    "particle.firmwareVersion": "1.5.0"
+    "particle.firmwareVersion": "1.5.1"
 }

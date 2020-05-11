@@ -39,6 +39,7 @@
 // v23 - Temp/Humidity "nan" issue and reset cycle fixed. Fixed Solenoid Not present stuck on issue
 // v24 - Moving back to PMIC control for charging
 // v25 - Using the setPowerConfiguration API again with new values assigned to better suite a solar implementation
+// v26 - Consistent "1" and "0" for all commands, Explicitly enabled charging
 
 // Particle Product definitions
 void setup();
@@ -53,11 +54,12 @@ bool disconnectFromParticle();
 bool notConnected();
 int measureNow(String command);
 int setPowerConfig();
+bool enableCharging(bool enableCharge);
 int setSoilSensors (String command);
 int setPressureSensor (String command);
 int setLightSensor (String command);
 int setTempHumidSensor (String command);
-int setSolenoidPresent (String command);
+int setSolenoidPresent(String command);
 int setVerboseMode(String command);
 int setLowPowerMode(String command);
 int controlValve(String command);
@@ -66,10 +68,10 @@ void awakeTimerISR();
 void publishStateTransition(void);
 bool meterParticlePublish(void);
 void fullModemReset();
-#line 38 "/Users/chipmc/Documents/Maker/Particle/Projects/Rwanda-Sense-and-Control/src/Rwanda-Sense-and-Control.ino"
+#line 39 "/Users/chipmc/Documents/Maker/Particle/Projects/Rwanda-Sense-and-Control/src/Rwanda-Sense-and-Control.ino"
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(25);
-const char releaseNumber[6] = "25";                  // Displays the release on the menu
+PRODUCT_VERSION(26);
+const char releaseNumber[6] = "26";                  // Displays the release on the menu
 
 
 // Included Libraries
@@ -268,7 +270,7 @@ void setup()                                                      // Note: Disco
 
   sysStatus.solenoidHoldTime = 5;                                      // Set a reasonable value - based on testing 8mSec
 
-  if (sysStatus.solenoidConfig && current.solenoidState) controlValve("Off");   // Can start watering until we get to the main loop
+  if (sysStatus.solenoidConfig && current.solenoidState) controlValve("0");   // Can start watering until we get to the main loop
 
   sysStatus.solarPowerMode = true;                                      // Set this as a default
   setPowerConfig();                                                     // Executes commands that set up the PMIC for Solar charging - once we know the Solar Mode
@@ -286,7 +288,6 @@ void setup()                                                      // Note: Disco
 
   if(Particle.connected() && sysStatus.verboseMode) Particle.publish("Startup",StartupMessage,PRIVATE);   // Let Particle know how the startup process went
   Serial.println(StartupMessage);
-
 
   systemStatusWriteNeeded = true;                                       // likely something has changed
 }
@@ -327,11 +328,11 @@ void loop()
 
   case WATERING_STATE:                                                    // This state will examing soil values and decide on watering
     if (wateringTimerFlag) {
-      controlValve("Off");
+      controlValve("0");
       wateringTimerFlag = false;
     }
     else if (current.soilMoisture1 < 30.0 && !current.solenoidState) {  // Water if dry and if we are not already watering
-      controlValve("On");
+      controlValve("1");
       wateringTimer.start();                                                    // Start the timer to keep track of the watering time
     }
     state = REPORTING_STATE;
@@ -396,7 +397,7 @@ void loop()
       disconnectFromParticle();                                         // If connected, we need to disconned and power down the modem
     }
     digitalWrite(blueLED,LOW);                                          // Turn off the LED
-    if (sysStatus.solenoidConfig) controlValve("Off");                  // Make darn sure the water is off
+    if (sysStatus.solenoidConfig) controlValve("0");                  // Make darn sure the water is off
     delay(5000);
     long secondsToHour = (60*(60 - Time.minute()));                     // Time till the top of the hour
     config.mode(SystemSleepMode::STOP).gpio(userSwitch,CHANGE).duration(secondsToHour * 1000);
@@ -435,7 +436,7 @@ void loop()
 void sendEvent()
 {
   char data[256];                                                         // Store the date in this character array - not global
-  snprintf(data, sizeof(data), "{\"Temperature\":%4.1f, \"Humidity\":%4.1f, \"LightLevel\":%4.1f, \"Soilmoisture1\":%i, \"Soilmoisture2\":%i, \"waterPressure\":%i, \"Solenoid\":%i, \"Battery\":%i, \"Resets\":%i, \"Alerts\":%i}", current.temperature, current.humidity, current.lightLevel, current.soilMoisture1, current.soilMoisture2, current.pressure, current.solenoidState, sysStatus.stateOfCharge, sysStatus.resetCount, current.alertCount );
+  snprintf(data, sizeof(data), "{\"Temperature\":%4.1f, \"Humidity\":%4.1f, \"LightLevel\":%4.1f, \"Soilmoisture1\":%i, \"Soilmoisture2\":%i, \"waterPressure\":%i, \"Solenoid\":%i, \"battery\":%i, \"key1\":\"%s\", \"Resets\":%i, \"Alerts\":%i}", current.temperature, current.humidity, current.lightLevel, current.soilMoisture1, current.soilMoisture2, current.pressure, current.solenoidState, sysStatus.stateOfCharge, batteryContextStr, sysStatus.resetCount, current.alertCount );
   waitUntil(meterParticlePublish);
   Particle.publish("Rwanda-Sense-And-Control-Elastic", data, PRIVATE);
   waitUntil(meterParticlePublish);
@@ -585,7 +586,7 @@ int setPowerConfig() {
 
   if (sysStatus.solarPowerMode) {
     conf.powerSourceMaxCurrent(550) // Set maximum current the power source can provide (applies only when powered through VIN)
-        .powerSourceMinVoltage(5080) // Set minimum voltage the power source can provide (applies only when powered through VIN)
+        .powerSourceMinVoltage(4840) // Set minimum voltage the power source can provide (applies only when powered through VIN)
         .batteryChargeCurrent(512) // Set battery charge current
         .batteryChargeVoltage(4210) // Set battery termination voltage
         .feature(SystemPowerFeature::USE_VIN_SETTINGS_WITH_USB_HOST); // For the cases where the device is powered through VIN
@@ -593,6 +594,7 @@ int setPowerConfig() {
                                                                      // enforces the voltage/current limits specified in the configuration
                                                                      // (where by default the device would be thinking that it's powered by the USB Host)
     int res = System.setPowerConfiguration(conf); // returns SYSTEM_ERROR_NONE (0) in case of success
+    enableCharging(true);
     return res;
   }
   else  {
@@ -602,9 +604,24 @@ int setPowerConfig() {
         .batteryChargeVoltage(4112)                                      // default is 4.112V termination voltage
         .feature(SystemPowerFeature::USE_VIN_SETTINGS_WITH_USB_HOST) ;
     int res = System.setPowerConfiguration(conf); // returns SYSTEM_ERROR_NONE (0) in case of success
+    enableCharging(true);
     return res;
   }
 }
+
+bool enableCharging(bool enableCharge)
+{
+  PMIC pmic(true);
+  if(enableCharge) {
+    pmic.enableCharging();
+    return TRUE;
+  }
+  else {
+    pmic.disableCharging();
+    return FALSE;
+  }
+}
+
 
 int setSoilSensors (String command) // Function to force sending data in current hour
 {
@@ -692,16 +709,16 @@ int setTempHumidSensor (String command) // Function to force sending data in cur
   else return 0;
 }
 
-int setSolenoidPresent (String command) // Function to force sending data in current hour
+int setSolenoidPresent(String command) // Function to force sending data in current hour
 {
-  controlValve("Off");                                            // Make sure it is turned off
-  if (command == "Yes" || command == "yes") {
+  controlValve("0");                                            // Make sure it is turned off
+  if (command == "1") {
     sysStatus.solenoidConfig = 1;
     systemStatusWriteNeeded = true;
     Particle.publish("Config","Solenoid Attached",PRIVATE);
     return 1;
   }
-  else if (command == "No" || command == "no") {
+  else if (command == "0") {
     sysStatus.solenoidConfig = 0;
     systemStatusWriteNeeded = true;
     Particle.publish("Config","No Solenoid Attached",PRIVATE);
@@ -760,8 +777,8 @@ int setLowPowerMode(String command)                                   // This is
 
 int controlValve(String command)                                   // Function to force sending data in current hour
 {
-  if (command != "On" && command != "Off") return 0;              // Before we begin, let's make sure we have a valid input
-  else if (command == "On") {                                     // Open the water valve
+  if (command != "1" && command != "0") return 0;              // Before we begin, let's make sure we have a valid input
+  else if (command == "1") {                                     // Open the water valve
     current.solenoidState = true;
     digitalWrite(solDirection,HIGH);                              // Open the valve
     digitalWrite(solEnablePin,LOW);                               // Enable the solenoid
