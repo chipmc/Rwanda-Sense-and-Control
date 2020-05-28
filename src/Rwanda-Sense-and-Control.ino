@@ -34,11 +34,14 @@
 // v24 - Moving back to PMIC control for charging
 // v25 - Using the setPowerConfiguration API again with new values assigned to better suite a solar implementation
 // v26 - Consistent "1" and "0" for all commands, Explicitly enabled charging, added battery context
+// v27 - Trying some new values for the duration to turn on the solenoid
+// v28 - Will now nap for two hours overnight (7pm - 5am)
+// v28 - Took out the nap for two hours thing for now.  Added vairable duration and sensitivity to water.  Will report pressure greater than 1 psi.
 
 // Particle Product definitions
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(26);
-const char releaseNumber[6] = "26";                  // Displays the release on the menu
+PRODUCT_VERSION(28);
+const char releaseNumber[6] = "28";                  // Displays the release on the menu
 
 
 // Included Libraries
@@ -84,6 +87,8 @@ struct systemStatus_structure {                     // currently 14 bytes long
   int solenoidHoldTime;                             // How long do we pulse the solenoid
   int resetCount;                                   // reset count of device (0-256)
   unsigned long lastHookResponse;                   // Last time we got a valid Webhook response
+  int wateringDurationMin;                      // How long do we water
+  float wateringThresholdPct;                       // Soil Moisture that triggers watering
 } sysStatus;
 
 struct currentStatus_structure {                    // currently 10 bytes long
@@ -135,6 +140,7 @@ bool systemStatusWriteNeeded = false;               // Keep track of when we nee
 bool currentStatusWriteNeeded = false;
 bool volatile wateringTimerFlag = false;
 
+
 // Variables Related To Particle Mobile Application Reporting
 char SignalString[64];                     // Used to communicate Wireless RSSI and Description
 char temperatureString[16];
@@ -145,7 +151,7 @@ char waterPressureString[16];
 char batteryString[8];
 char batteryContextStr[16];                                            // One word that describes whether the device is getting power, charging, discharging or too cold to charge
 char lightLevelString[16];
-char lowPowerModeStr[8];
+char wateringThresholdPctStr[8];
 
 // Time Period Related Variables
 byte currentHourlyPeriod;                                         // This is where we will know if the period changed
@@ -181,7 +187,8 @@ void setup()                                                      // Note: Disco
   Particle.variable("Release",releaseNumber);
   Particle.variable("StateOfChg", batteryString);
   Particle.variable("BatteryContext",batteryContextStr);
-  Particle.variable("LowPowerMode",lowPowerModeStr);
+  Particle.variable("WaterDuration", sysStatus.wateringDurationMin);
+  Particle.variable("WateringThreshold",wateringThresholdPctStr);
   Particle.variable("Temperature", temperatureString);
   Particle.variable("Humidity", humidityString);
   Particle.variable("Luminosity",lightLevelString);
@@ -198,6 +205,8 @@ void setup()                                                      // Note: Disco
   Particle.function("SetLightSensor",setLightSensor);
   Particle.function("SolenoidPresent",setSolenoidPresent);
   Particle.function("SetTempHumidSensor",setTempHumidSensor);
+  Particle.function("SetWaterDuration", setWaterDuration);
+  Particle.function("SetWaterThreshold",setWaterThreshold);
 
   if (MemVersionNumber != EEPROM.read(MEM_MAP::versionAddr)) {          // Check to see if the memory map is the right version
     EEPROM.put(MEM_MAP::versionAddr,MemVersionNumber);
@@ -208,6 +217,9 @@ void setup()                                                      // Note: Disco
 
   EEPROM.get(MEM_MAP::systemStatusAddr,sysStatus);                      // Load the System Status Object
   EEPROM.get(MEM_MAP::currentStatusAddr,current);
+
+  wateringTimer.changePeriod(1000*60*sysStatus.wateringDurationMin);
+  wateringTimer.reset();
 
   if (sysStatus.TempHumidConfig) {                                      // If there is a sensor present - initialize it
     if (!tempHumidSensor.begin(0x44)) {
@@ -229,13 +241,11 @@ void setup()                                                      // Note: Disco
     fullModemReset();                                                   // This will reset the modem and the device will reboot
   }
 
-  if(!sysStatus.lowPowerMode) {
-    strcpy(lowPowerModeStr,"False");
-    awakeTimer.start();
+  if(sysStatus.solenoidConfig) {
+    snprintf(wateringThresholdPctStr,sizeof(wateringThresholdPctStr),"%2.1f %%",sysStatus.wateringThresholdPct);
   }
-  else strcpy(lowPowerModeStr,"True");
 
-  sysStatus.solenoidHoldTime = 5;                                      // Set a reasonable value - based on testing 8mSec
+  sysStatus.solenoidHoldTime = 6;                                      // Set a reasonable value - based on testing 8mSec
 
   if (sysStatus.solenoidConfig && current.solenoidState) controlValve("0");   // Can start watering until we get to the main loop
 
@@ -294,13 +304,21 @@ void loop()
     break;
 
   case WATERING_STATE:                                                    // This state will examing soil values and decide on watering
-    if (wateringTimerFlag) {
+    if (wateringTimerFlag) {                                              // Already watering - time to turn off the tap
+      waitUntil(meterParticlePublish);
+      Particle.publish("Watering","Done with watering cycle",PRIVATE);
       controlValve("0");
       wateringTimerFlag = false;
     }
-    else if (current.soilMoisture1 < 30.0 && !current.solenoidState) {  // Water if dry and if we are not already watering
+    else if (current.soilMoisture1 < sysStatus.wateringThresholdPct && !current.solenoidState) {  // Water if dry and if we are not already watering
+      waitUntil(meterParticlePublish);
+      Particle.publish("Watering","Watering needed - starting 20 min cycle",PRIVATE);
       controlValve("1");
       wateringTimer.start();                                                    // Start the timer to keep track of the watering time
+    }
+    else {
+      waitUntil(meterParticlePublish);
+      Particle.publish("Watering","Watering not needed",PRIVATE);
     }
     state = REPORTING_STATE;
     break;
@@ -334,7 +352,16 @@ void loop()
     break;
 
   case NAPPING_STATE: {                                                // This state is triggered once the park closes and runs until it opens
+    long secondsToHour;
+    static bool pressureDetectedFlag = false;                          // Did we detect water pressure just before going to sleep
     if (sysStatus.verboseMode && state != oldState) publishStateTransition();
+
+    if (current.pressure > 1 && !pressureDetectedFlag) {               // If we detect pressure we will report again - once!
+      pressureDetectedFlag = true;
+      state = MEASURING_STATE;
+      break;
+    }
+
     if (Particle.connected()) {
       if (sysStatus.verboseMode) {
         waitUntil(meterParticlePublish);
@@ -345,7 +372,8 @@ void loop()
     }
     digitalWrite(blueLED,LOW);                                          // Turn off the LED
     digitalWrite(sensorShutdown,LOW);                                   // Turn off the sensors
-    long secondsToHour = (60*(60 - Time.minute()));                     // Time till the top of the hour
+    pressureDetectedFlag = false;
+    secondsToHour = (60*(60 - Time.minute()));                     // Time till the top of the hour
     config.mode(SystemSleepMode::STOP).gpio(userSwitch,CHANGE).duration(secondsToHour * 1000);
     SystemSleepResult result = System.sleep(config);                    // Put the device to sleep
     if (result.wakeupPin() == userSwitch) setLowPowerMode("0");
@@ -694,6 +722,44 @@ int setSolenoidPresent(String command) // Function to force sending data in curr
   else return 0;
 }
 
+int setWaterDuration(String command)
+{
+  char * pEND;
+  char data[256];
+  int tempDuration = strtol(command,&pEND,10);                       // Looks for the first integer and interprets it
+  if ((tempDuration < 1) || (tempDuration > 55)) return 0;   // Make sure it falls in a valid range or send a "fail" result
+  sysStatus.wateringDurationMin = tempDuration;
+  systemStatusWriteNeeded = true;                          // Store the new value in FRAMwrite8
+  snprintf(data, sizeof(data), "Watering Duration set to %i",sysStatus.wateringDurationMin);
+
+  if (wateringTimer.isActive()){                                          // We can change the period of a running timer
+    wateringTimer.changePeriod(1000*60*sysStatus.wateringDurationMin);
+  }
+  else {                                                              // But if it was not running already, we need to reset after chaning
+    wateringTimer.changePeriod(1000*60*sysStatus.wateringDurationMin);
+    wateringTimer.reset();
+  }
+
+  waitUntil(meterParticlePublish);
+  if (Particle.connected()) Particle.publish("Time",data, PRIVATE);
+  return 1;
+}
+
+int setWaterThreshold(String command)                                       // This is the amount of time in seconds we will wait before starting a new session
+{
+  char * pEND;
+  float tempThreshold = strtof(command,&pEND);                        // Looks for the first float and interprets it
+  if ((tempThreshold < 0.0) | (tempThreshold > 100.0)) return 0;        // Make sure it falls in a valid range or send a "fail" result
+  sysStatus.wateringThresholdPct = tempThreshold;                          // debounce is how long we must space events to prevent overcounting
+  systemStatusWriteNeeded = true;
+  snprintf(wateringThresholdPctStr,sizeof(wateringThresholdPctStr),"%2.1f %%",sysStatus.wateringThresholdPct);
+  if (sysStatus.verboseMode && Particle.connected()) {                                                  // Publish result if feeling verbose
+    waitUntil(meterParticlePublish);
+    Particle.publish("Threshold",wateringThresholdPctStr, PRIVATE);
+  }
+  return 1;                                                           // Returns 1 to let the user know if was reset
+}
+
 int setVerboseMode(String command) // Function to force sending data in current hour
 {
   if (command == "1")
@@ -723,7 +789,6 @@ int setLowPowerMode(String command)                                   // This is
       Particle.publish("Mode","Low Power Mode", PRIVATE);
     }
     sysStatus.lowPowerMode = true;
-    strcpy(lowPowerModeStr,"True");
   }
   else if (command == "0")                                            // Command calls for clearing lowPowerMode
   {
@@ -736,7 +801,6 @@ int setLowPowerMode(String command)                                   // This is
     delay(1000);                                                      // Need to make sure the message gets out.
     awakeTimer.start();                                               // Wake for 30 minutes - then back to low power mode.  Resets timer if already running
     sysStatus.lowPowerMode = false;                                   // update the variable used for console status
-    strcpy(lowPowerModeStr,"False");                                  // Use capitalization so we know that we set this.
   }
   systemStatusWriteNeeded = true;
   return 1;
