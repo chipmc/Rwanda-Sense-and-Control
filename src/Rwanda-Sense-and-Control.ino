@@ -37,11 +37,15 @@
 // v27 - Trying some new values for the duration to turn on the solenoid
 // v28 - Will now nap for two hours overnight (7pm - 5am)
 // v28 - Took out the nap for two hours thing for now.  Added vairable duration and sensitivity to water.  Will report pressure greater than 1 psi.
+// v29 - Safety - watering not needed will close the valve. 
+// v30 - Added time of day awareness to support watering during specific hours
+// v31 - Fixed broken logic on watering window
+// v32 - Added a battery check on watering, raised the low power threshold, and reduced reporting at night to even hours between 2000 and 0400, watering periods at 8,12,17 hours each with own duration
 
 // Particle Product definitions
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(28);
-const char releaseNumber[6] = "28";                  // Displays the release on the menu
+PRODUCT_VERSION(32);
+const char releaseNumber[6] = "32";                  // Displays the release on the menu
 
 
 // Included Libraries
@@ -75,7 +79,7 @@ struct systemStatus_structure {                     // currently 14 bytes long
   uint8_t connectedStatus;                          // Connected or not
   uint8_t verboseMode;                              // Extra text to facilitate problem solving
   uint8_t solarPowerMode;                           // Settings appropriate for solar power
-  uint8_t lowPowerMode;                             // Energy conserving mode
+  volatile uint8_t lowPowerMode;                             // Energy conserving mode
   uint8_t lowBatteryMode;                           // Reduced functionality when low battery conditiions exist
   int stateOfCharge;                                // Battery charge level
   uint8_t TempHumidConfig;                          // Do we have a temp / humidity sensor or not
@@ -87,8 +91,11 @@ struct systemStatus_structure {                     // currently 14 bytes long
   int solenoidHoldTime;                             // How long do we pulse the solenoid
   int resetCount;                                   // reset count of device (0-256)
   unsigned long lastHookResponse;                   // Last time we got a valid Webhook response
-  int wateringDurationMin;                      // How long do we water
+  int wateringDurationMorning;                      // How long do we water for each watering event
+  int wateringDurationLunch;
+  int wateringDurationEvening;
   float wateringThresholdPct;                       // Soil Moisture that triggers watering
+  int wateringWindow;                               // How many hours each day - starting at 5am will we enable watering
 } sysStatus;
 
 struct currentStatus_structure {                    // currently 10 bytes long
@@ -111,7 +118,7 @@ char stateNames[9][14] = {"Initialize", "Error", "Idle", "Measuring", "Watering"
 State state = INITIALIZATION_STATE;
 State oldState = INITIALIZATION_STATE;
 
-Timer wateringTimer(1200000, wateringTimerISR, true);     // 20 minute timer, calls the WateringTimerISR and is a one-shot timer
+Timer wateringTimer(1200000, wateringTimerISR, true);     // Watering timer, calls the WateringTimerISR and is a one-shot timer
 Timer awakeTimer(1800000, awakeTimerISR, true);           // 30 minute timer, calles the awakeTimerISR and is one-shot
 
 // Pin Constants
@@ -136,7 +143,7 @@ unsigned long resetTimeStamp = 0;                   // Resets - this keeps you f
 
 // Program Variables
 bool dataInFlight = true;
-bool systemStatusWriteNeeded = false;               // Keep track of when we need to write
+bool volatile systemStatusWriteNeeded = false;               // Keep track of when we need to write
 bool currentStatusWriteNeeded = false;
 bool volatile wateringTimerFlag = false;
 
@@ -149,15 +156,16 @@ char soilMoisture1String[16];
 char soilMoisture2String[16];
 char waterPressureString[16];
 char batteryString[8];
-char batteryContextStr[16];                                            // One word that describes whether the device is getting power, charging, discharging or too cold to charge
+char batteryContextStr[16];                                        // One word that describes whether the device is getting power, charging, discharging or too cold to charge
 char lightLevelString[16];
 char wateringThresholdPctStr[8];
+char lowPowerString[8];
 
 // Time Period Related Variables
 byte currentHourlyPeriod;                                         // This is where we will know if the period changed
 
 // Battery monitoring
-int lowBattLimit;                                                 // Trigger for Low Batt State
+int lowBattLimit = 30;                                            // Trigger for Low Batt State
 
 void setup()                                                      // Note: Disconnected Setup()
 {
@@ -187,7 +195,9 @@ void setup()                                                      // Note: Disco
   Particle.variable("Release",releaseNumber);
   Particle.variable("StateOfChg", batteryString);
   Particle.variable("BatteryContext",batteryContextStr);
-  Particle.variable("WaterDuration", sysStatus.wateringDurationMin);
+  Particle.variable("DurationMorning", sysStatus.wateringDurationMorning);
+  Particle.variable("DurationLunch", sysStatus.wateringDurationLunch);
+  Particle.variable("DurationEvening", sysStatus.wateringDurationEvening);
   Particle.variable("WateringThreshold",wateringThresholdPctStr);
   Particle.variable("Temperature", temperatureString);
   Particle.variable("Humidity", humidityString);
@@ -195,6 +205,7 @@ void setup()                                                      // Note: Disco
   Particle.variable("SoilMoisture1", current.soilMoisture1);
   Particle.variable("SoilMoisture2", current.soilMoisture2);
   Particle.variable("Pressure", current.pressure);
+  Particle.variable("WaterWindow",sysStatus.wateringWindow);
 
   Particle.function("Measure-Now",measureNow);
   Particle.function("LowPowerMode",setLowPowerMode);
@@ -205,7 +216,9 @@ void setup()                                                      // Note: Disco
   Particle.function("SetLightSensor",setLightSensor);
   Particle.function("SolenoidPresent",setSolenoidPresent);
   Particle.function("SetTempHumidSensor",setTempHumidSensor);
-  Particle.function("SetWaterDuration", setWaterDuration);
+  Particle.function("SetDurationMorning", setWaterDurationMorning);
+  Particle.function("SetDurationLunch", setWaterDurationLunch);
+  Particle.function("SetDurationEvening", setWaterDurationEvening);
   Particle.function("SetWaterThreshold",setWaterThreshold);
 
   if (MemVersionNumber != EEPROM.read(MEM_MAP::versionAddr)) {          // Check to see if the memory map is the right version
@@ -218,8 +231,7 @@ void setup()                                                      // Note: Disco
   EEPROM.get(MEM_MAP::systemStatusAddr,sysStatus);                      // Load the System Status Object
   EEPROM.get(MEM_MAP::currentStatusAddr,current);
 
-  wateringTimer.changePeriod(1000*60*sysStatus.wateringDurationMin);
-  wateringTimer.reset();
+  if (!sysStatus.lowPowerMode) awakeTimer.start();                      // If we are not in low power mode, will start a 30 min timer then set it
 
   if (sysStatus.TempHumidConfig) {                                      // If there is a sensor present - initialize it
     if (!tempHumidSensor.begin(0x44)) {
@@ -247,7 +259,7 @@ void setup()                                                      // Note: Disco
 
   sysStatus.solenoidHoldTime = 6;                                      // Set a reasonable value - based on testing 8mSec
 
-  if (sysStatus.solenoidConfig && current.solenoidState) controlValve("0");   // Can start watering until we get to the main loop
+  if (sysStatus.solenoidConfig && current.solenoidState) controlValve("0");   // Can't start watering until we get to the main loop
 
   sysStatus.solarPowerMode = true;                                      // Set this as a default
   setPowerConfig();                                                     // Executes commands that set up the PMIC for Solar charging - once we know the Solar Mode
@@ -266,6 +278,10 @@ void setup()                                                      // Note: Disco
   if(Particle.connected() && sysStatus.verboseMode) Particle.publish("Startup",StartupMessage,PRIVATE);   // Let Particle know how the startup process went
   Serial.println(StartupMessage);
 
+  Time.zone(2.0);                                                        // set timezone to Rwanda Time
+  waitUntil(meterParticlePublish);                                                
+  if(Particle.connected() && sysStatus.verboseMode) Particle.publish("Local Time",Time.timeStr(),PRIVATE);
+
   systemStatusWriteNeeded = true;                                       // likely something has changed
 }
 
@@ -282,7 +298,7 @@ void loop()
       EEPROM.put(MEM_MAP::currentStatusAddr ,current);
       currentStatusWriteNeeded = false;
     }
-    if (sysStatus.lowPowerMode && (millis() - stayAwakeTimeStamp) > stayAwake && !current.solenoidState) state = NAPPING_STATE;    // These state assignments are in order of precedence
+    if (sysStatus.lowPowerMode && (millis() - stayAwakeTimeStamp > stayAwake) && !current.solenoidState) state = NAPPING_STATE;    // These state assignments are in order of precedence
     if (Time.hour() != currentHourlyPeriod) state = MEASURING_STATE;                                                               // We want to report on the hour but not after bedtime
     if (sysStatus.stateOfCharge <= lowBattLimit) state = LOW_BATTERY_STATE;                                                        // The battery is low - sleep
     if (wateringTimerFlag) state = WATERING_STATE;                                                                                 // Most important - turn off water when done!
@@ -310,15 +326,28 @@ void loop()
       controlValve("0");
       wateringTimerFlag = false;
     }
+    else if (Time.hour() != 8 && Time.hour() != 12 && Time.hour() != 17) {
+      waitUntil(meterParticlePublish);
+      Particle.publish("Watering","Not time to water",PRIVATE);
+      if(current.solenoidState) controlValve("0");
+    }
+    else if (sysStatus.stateOfCharge < 50) {
+      waitUntil(meterParticlePublish);
+      Particle.publish("Watering","Watering Needed but battery too low",PRIVATE);
+      if(current.solenoidState) controlValve("0");
+    }
     else if (current.soilMoisture1 < sysStatus.wateringThresholdPct && !current.solenoidState) {  // Water if dry and if we are not already watering
       waitUntil(meterParticlePublish);
-      Particle.publish("Watering","Watering needed - starting 20 min cycle",PRIVATE);
+      Particle.publish("Watering","Watering needed - starting watering cycle",PRIVATE);
       controlValve("1");
-      wateringTimer.start();                                                    // Start the timer to keep track of the watering time
+      if (Time.hour() == 8) wateringTimer.changePeriod(sysStatus.wateringDurationMorning * 60 * 1000); // Start the timer to keep track of the watering time
+      else if (Time.hour() == 12 ) wateringTimer.changePeriod(sysStatus.wateringDurationLunch * 60 * 1000);
+      else wateringTimer.changePeriod(sysStatus.wateringDurationEvening * 60 * 1000);                                                
     }
     else {
       waitUntil(meterParticlePublish);
       Particle.publish("Watering","Watering not needed",PRIVATE);
+      if(current.solenoidState) controlValve("0");
     }
     state = REPORTING_STATE;
     break;
@@ -334,7 +363,7 @@ void loop()
       sendEvent();                                                        // Send data to Ubidots
       state = RESP_WAIT_STATE;                                            // Wait for Response
     }
-    else if (!connectToParticle()) state = ERROR_STATE;                   // In case we timed out on our 1st attempt to connect
+    else if (!Particle.connected()) state = ERROR_STATE;                  // In case we timed out on our 1st attempt to connect
     break;
 
   case RESP_WAIT_STATE:
@@ -379,8 +408,15 @@ void loop()
     if (result.wakeupPin() == userSwitch) setLowPowerMode("0");
     digitalWrite(blueLED,HIGH);                                         // On when the device is awake
     digitalWrite(sensorShutdown,HIGH);                                  // Turn on the sensors when awake
-    connectToParticle();                                                // Wakey Wakey and get connected.
-    state = IDLE_STATE;                                                 // Awake now, we need to go back to the IDLE state for next tasking
+    if (Time.hour() > 19 && Time.hour() < 5 && Time.hour() % 2 == 0) {  // At night, only connect every other hour
+      connectToParticle();                                              // Wakey Wakey and get connected.
+      state = IDLE_STATE;                                               // Awake now, we need to go back to the IDLE state for next tasking
+    }
+    else if (Time.hour() <= 19 && Time.hour() >=5){                     // During the day, connect every hour
+      connectToParticle();                                              // Wakey Wakey and get connected.
+      state = IDLE_STATE;                                               // Awake now, we need to go back to the IDLE state for next tasking
+    }
+    else state = NAPPING_STATE;                                         // Otherwise sleep
     } break;
 
   case LOW_BATTERY_STATE: {                                             // Sleep state but leaves the fuel gauge on
@@ -722,26 +758,75 @@ int setSolenoidPresent(String command) // Function to force sending data in curr
   else return 0;
 }
 
-int setWaterDuration(String command)
+int setWaterDurationMorning(String command)
 {
   char * pEND;
   char data[256];
   int tempDuration = strtol(command,&pEND,10);                       // Looks for the first integer and interprets it
   if ((tempDuration < 1) || (tempDuration > 55)) return 0;   // Make sure it falls in a valid range or send a "fail" result
-  sysStatus.wateringDurationMin = tempDuration;
+  sysStatus.wateringDurationMorning = tempDuration;
   systemStatusWriteNeeded = true;                          // Store the new value in FRAMwrite8
-  snprintf(data, sizeof(data), "Watering Duration set to %i",sysStatus.wateringDurationMin);
+  snprintf(data, sizeof(data), "Morning Watering Duration set to %i",sysStatus.wateringDurationMorning);
 
   if (wateringTimer.isActive()){                                          // We can change the period of a running timer
-    wateringTimer.changePeriod(1000*60*sysStatus.wateringDurationMin);
-  }
-  else {                                                              // But if it was not running already, we need to reset after chaning
-    wateringTimer.changePeriod(1000*60*sysStatus.wateringDurationMin);
-    wateringTimer.reset();
+    wateringTimer.changePeriod(1000*60*sysStatus.wateringDurationMorning);
   }
 
   waitUntil(meterParticlePublish);
-  if (Particle.connected()) Particle.publish("Time",data, PRIVATE);
+  if (Particle.connected()) Particle.publish("Duration",data, PRIVATE);
+  return 1;
+}
+
+int setWaterDurationLunch(String command)
+{
+  char * pEND;
+  char data[256];
+  int tempDuration = strtol(command,&pEND,10);                       // Looks for the first integer and interprets it
+  if ((tempDuration < 1) || (tempDuration > 55)) return 0;   // Make sure it falls in a valid range or send a "fail" result
+  sysStatus.wateringDurationLunch = tempDuration;
+  systemStatusWriteNeeded = true;                          // Store the new value in FRAMwrite8
+  snprintf(data, sizeof(data), "Lunch Watering Duration set to %i",sysStatus.wateringDurationLunch);
+
+  if (wateringTimer.isActive()){                                          // We can change the period of a running timer
+    wateringTimer.changePeriod(1000*60*sysStatus.wateringDurationLunch);
+  }
+
+  waitUntil(meterParticlePublish);
+  if (Particle.connected()) Particle.publish("Duration",data, PRIVATE);
+  return 1;
+}
+
+int setWaterDurationEvening(String command)
+{
+  char * pEND;
+  char data[256];
+  int tempDuration = strtol(command,&pEND,10);                       // Looks for the first integer and interprets it
+  if ((tempDuration < 1) || (tempDuration > 55)) return 0;   // Make sure it falls in a valid range or send a "fail" result
+  sysStatus.wateringDurationEvening = tempDuration;
+  systemStatusWriteNeeded = true;                          // Store the new value in FRAMwrite8
+  snprintf(data, sizeof(data), "Morning Watering Duration set to %i",sysStatus.wateringDurationEvening);
+
+  if (wateringTimer.isActive()){                                          // We can change the period of a running timer
+    wateringTimer.changePeriod(1000*60*sysStatus.wateringDurationEvening);
+  }
+
+  waitUntil(meterParticlePublish);
+  if (Particle.connected()) Particle.publish("Duration",data, PRIVATE);
+  return 1;
+}
+
+int setWaterWindow(String command)
+{
+  char * pEND;
+  char data[256];
+  int tempWindow = strtol(command,&pEND,10);                       // Looks for the first integer and interprets it
+  if ((tempWindow < 1) || (tempWindow > 24)) return 0;   // Make sure it falls in a valid range or send a "fail" result
+  sysStatus.wateringWindow = tempWindow;
+  systemStatusWriteNeeded = true;                          // Store the new value in FRAMwrite8
+  snprintf(data, sizeof(data), "Watering begins at 5am for %i hours",sysStatus.wateringWindow);
+
+  waitUntil(meterParticlePublish);
+  if (Particle.connected()) Particle.publish("Window",data, PRIVATE);
   return 1;
 }
 
@@ -800,7 +885,7 @@ int setLowPowerMode(String command)                                   // This is
     Particle.publish("Mode","Normal Operations", PRIVATE);
     delay(1000);                                                      // Need to make sure the message gets out.
     awakeTimer.start();                                               // Wake for 30 minutes - then back to low power mode.  Resets timer if already running
-    sysStatus.lowPowerMode = false;                                   // update the variable used for console status
+    sysStatus.lowPowerMode = false;                                   // update the system variable to reflect the new lowPowerMode
   }
   systemStatusWriteNeeded = true;
   return 1;
@@ -848,7 +933,6 @@ void publishStateTransition(void)
     waitUntil(meterParticlePublish);
     Particle.publish("State Transition",stateTransitionString, PRIVATE);
   }
-  Serial.println(stateTransitionString);
 }
 
 bool meterParticlePublish(void)
@@ -875,48 +959,4 @@ void fullModemReset() {  // Adapted form Rikkas7's https://github.com/rickkas7/e
 	// Go into deep sleep for 10 seconds to try to reset everything. This turns off the modem as well.
 	System.sleep(SLEEP_MODE_DEEP, 10);
 }
-/*
-void loadSystemDefaults() {                                         // Default settings for the device - connected, not-low power and always on
-  connectToParticle();                                              // Get connected to Particle - sets sysStatus.connectedStatus to true
-  takeMeasurements();                                               // Need information to set value here - sets sysStatus.stateOfCharge
-  waitUntil(meterParticlePublish);
-  if (Particle.connected()) Particle.publish("Mode","Loading System Defaults", PRIVATE);
-  sysStatus.structuresVersion = 1;
-  sysStatus.metricUnits = false;
-  sysStatus.verboseMode = true;
-  if (sysStatus.stateOfCharge < 30) sysStatus.lowBatteryMode = true;
-  else sysStatus.lowBatteryMode = false;
-  sysStatus.lowPowerMode = false;
-  sysStatus.debounce = 1000;
-  sysStatus.timezone = -5;                                          // Default is East Coast Time
-  sysStatus.dstOffset = 1;
-  sysStatus.openTime = 0;
-  sysStatus.closeTime = 24;
 
-  fram.put(FRAM::systemStatusAddr,sysStatus);                       // Write it now since this is a big deal and I don't want values over written
-}
-
-void checkSystemValues() {                                          // Checks to ensure that all system values are in reasonable range
-  takeMeasurements();                                               // Sets the sysStatus.stateOfCharge
-  if (sysStatus.metricUnits < 0 || sysStatus.metricUnits >1) sysStatus.metricUnits = 0;
-  if (sysStatus.connectedStatus < 0 || sysStatus.connectedStatus > 1) {
-    if (Particle.connected()) sysStatus.connectedStatus = true;
-    else sysStatus.connectedStatus = false;
-  }
-  if (sysStatus.verboseMode < 0 || sysStatus.verboseMode > 1) sysStatus.verboseMode = false;
-  if (sysStatus.solarPowerMode < 0 || sysStatus.solarPowerMode >1) sysStatus.solarPowerMode = 0;
-  if (sysStatus.lowPowerMode < 0 || sysStatus.lowPowerMode > 1) sysStatus.lowPowerMode = 0;
-  if (sysStatus.lowBatteryMode < 0 || sysStatus.lowBatteryMode > 1) sysStatus.lowBatteryMode = 0;
-  if (sysStatus.stateOfCharge < 30) sysStatus.lowBatteryMode = true;
-  else sysStatus.lowBatteryMode = false;
-  if (sysStatus.debounce < 0 || sysStatus.debounce > 6000) sysStatus.debounce = 1000;
-  if (sysStatus.resetCount < 0 || sysStatus.resetCount > 255) sysStatus.resetCount = 0;
-  if (sysStatus.timezone < -12 || sysStatus.timezone > 12) sysStatus.timezone = -5;
-  if (sysStatus.dstOffset < 0 || sysStatus.dstOffset > 2) sysStatus.dstOffset = 1;
-  if (sysStatus.openTime < 0 || sysStatus.openTime > 12) sysStatus.openTime = 0;
-  if (sysStatus.closeTime < 12 || sysStatus.closeTime > 24) sysStatus.closeTime = 24;
-  // None for lastHookResponse
-
-  systemStatusWriteNeeded = true;
-}
-*/
