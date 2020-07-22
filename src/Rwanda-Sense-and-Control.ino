@@ -41,11 +41,15 @@
 // v30 - Added time of day awareness to support watering during specific hours
 // v31 - Fixed broken logic on watering window
 // v32 - Added a battery check on watering, raised the low power threshold, and reduced reporting at night to even hours between 2000 and 0400, watering periods at 8,12,17 hours each with own duration
+// v33 - Fixed issue with reporting at night.
+// v34 - Added pmic.enableBuck() to fix charging issue
+// v35 - Fixed settings for power - 5.080V for panel threshold
+// v36 - Solar charge fix (enableBuck) and double-tap open and close
 
 // Particle Product definitions
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(32);
-const char releaseNumber[6] = "32";                  // Displays the release on the menu
+PRODUCT_VERSION(36);
+const char releaseNumber[6] = "36";                  // Displays the release on the menu
 
 
 // Included Libraries
@@ -61,6 +65,7 @@ STARTUP(System.enableFeature(FEATURE_RESET_INFO));
 SystemSleepConfiguration config;                    // Initialize the Sleep 2.0 API
 Adafruit_SHT31 tempHumidSensor = Adafruit_SHT31();  // Temp and Humidity Sensor - Grove connected on i2c
 BH1750 lightSensor(0x23, Wire);                     // Light sensor measures light level in Lux
+PMIC pmic;
 
 namespace MEM_MAP {                                 // Moved to namespace instead of #define to limit scope
   enum Addresses {
@@ -220,6 +225,8 @@ void setup()                                                      // Note: Disco
   Particle.function("SetDurationLunch", setWaterDurationLunch);
   Particle.function("SetDurationEvening", setWaterDurationEvening);
   Particle.function("SetWaterThreshold",setWaterThreshold);
+
+  pmic.enableBuck();
 
   if (MemVersionNumber != EEPROM.read(MEM_MAP::versionAddr)) {          // Check to see if the memory map is the right version
     EEPROM.put(MEM_MAP::versionAddr,MemVersionNumber);
@@ -408,11 +415,11 @@ void loop()
     if (result.wakeupPin() == userSwitch) setLowPowerMode("0");
     digitalWrite(blueLED,HIGH);                                         // On when the device is awake
     digitalWrite(sensorShutdown,HIGH);                                  // Turn on the sensors when awake
-    if (Time.hour() > 19 && Time.hour() < 5 && Time.hour() % 2 == 0) {  // At night, only connect every other hour
+    if (!isDayTime() && Time.hour() % 2 == 0) {                         // At night, only connect every other hour
       connectToParticle();                                              // Wakey Wakey and get connected.
       state = IDLE_STATE;                                               // Awake now, we need to go back to the IDLE state for next tasking
     }
-    else if (Time.hour() <= 19 && Time.hour() >=5){                     // During the day, connect every hour
+    else if (isDayTime()){                                              // During the day, connect every hour
       connectToParticle();                                              // Wakey Wakey and get connected.
       state = IDLE_STATE;                                               // Awake now, we need to go back to the IDLE state for next tasking
     }
@@ -610,16 +617,22 @@ int measureNow(String command) // Function to force sending data in current hour
   else return 0;
 }
 
+bool isDayTime() {
+  if (Time.hour() >= 19) return 0;
+  else if (Time.hour() < 6) return 0;
+  else return 1;
+}
+
 // Power Management function
 int setPowerConfig() {
   SystemPowerConfiguration conf;
   System.setPowerConfiguration(SystemPowerConfiguration());  // To restore the default configuration
 
   if (sysStatus.solarPowerMode) {
-    conf.powerSourceMaxCurrent(550) // Set maximum current the power source can provide (applies only when powered through VIN)
-        .powerSourceMinVoltage(4840) // Set minimum voltage the power source can provide (applies only when powered through VIN)
-        .batteryChargeCurrent(512) // Set battery charge current
-        .batteryChargeVoltage(4210) // Set battery termination voltage
+    conf.powerSourceMaxCurrent(900) // Set maximum current the power source can provide (applies only when powered through VIN)
+        .powerSourceMinVoltage(5080) // Set minimum voltage the power source can provide (applies only when powered through VIN)
+        .batteryChargeCurrent(1024) // Set battery charge current
+        .batteryChargeVoltage(4208) // Set battery termination voltage
         .feature(SystemPowerFeature::USE_VIN_SETTINGS_WITH_USB_HOST); // For the cases where the device is powered through VIN
                                                                      // but the USB cable is connected to a USB host, this feature flag
                                                                      // enforces the voltage/current limits specified in the configuration
@@ -804,7 +817,7 @@ int setWaterDurationEvening(String command)
   if ((tempDuration < 1) || (tempDuration > 55)) return 0;   // Make sure it falls in a valid range or send a "fail" result
   sysStatus.wateringDurationEvening = tempDuration;
   systemStatusWriteNeeded = true;                          // Store the new value in FRAMwrite8
-  snprintf(data, sizeof(data), "Morning Watering Duration set to %i",sysStatus.wateringDurationEvening);
+  snprintf(data, sizeof(data), "Evening Watering Duration set to %i",sysStatus.wateringDurationEvening);
 
   if (wateringTimer.isActive()){                                          // We can change the period of a running timer
     wateringTimer.changePeriod(1000*60*sysStatus.wateringDurationEvening);
@@ -900,10 +913,18 @@ int controlValve(String command)                                   // Function t
     digitalWrite(solEnablePin,LOW);                               // Enable the solenoid
     delay(sysStatus.solenoidHoldTime);
     digitalWrite(solEnablePin,HIGH);                              // Diable the solenoid
+    delay(1000);
+    digitalWrite(solEnablePin,LOW);                               // Enable the solenoid
+    delay(sysStatus.solenoidHoldTime);
+    digitalWrite(solEnablePin,HIGH);                              // Diable the solenoid
     Particle.publish("Watering","Open the Valve",PRIVATE);
   }
   else {                                                          // Close the water valve
     digitalWrite(solDirection,LOW);                               // Close the valve
+    digitalWrite(solEnablePin,LOW);                               // Enable the solenoid
+    delay(sysStatus.solenoidHoldTime);
+    digitalWrite(solEnablePin,HIGH);                              // Diable the solenoid
+    delay(1000);
     digitalWrite(solEnablePin,LOW);                               // Enable the solenoid
     delay(sysStatus.solenoidHoldTime);
     digitalWrite(solEnablePin,HIGH);                              // Diable the solenoid
