@@ -45,11 +45,12 @@
 // v34 - Added pmic.enableBuck() to fix charging issue
 // v35 - Fixed settings for power - 5.080V for panel threshold
 // v36 - Solar charge fix (enableBuck) and double-tap open and close
+// v37 - This fix is to move to deviceOS@2.0.0-rc2 and take out the PMIC fix required above.  
 
 // Particle Product definitions
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(36);
-const char releaseNumber[6] = "36";                  // Displays the release on the menu
+PRODUCT_VERSION(37);
+const char releaseNumber[6] = "37";                  // Displays the release on the menu
 
 
 // Included Libraries
@@ -65,7 +66,6 @@ STARTUP(System.enableFeature(FEATURE_RESET_INFO));
 SystemSleepConfiguration config;                    // Initialize the Sleep 2.0 API
 Adafruit_SHT31 tempHumidSensor = Adafruit_SHT31();  // Temp and Humidity Sensor - Grove connected on i2c
 BH1750 lightSensor(0x23, Wire);                     // Light sensor measures light level in Lux
-PMIC pmic;
 
 namespace MEM_MAP {                                 // Moved to namespace instead of #define to limit scope
   enum Addresses {
@@ -225,8 +225,6 @@ void setup()                                                      // Note: Disco
   Particle.function("SetDurationLunch", setWaterDurationLunch);
   Particle.function("SetDurationEvening", setWaterDurationEvening);
   Particle.function("SetWaterThreshold",setWaterThreshold);
-
-  pmic.enableBuck();
 
   if (MemVersionNumber != EEPROM.read(MEM_MAP::versionAddr)) {          // Check to see if the memory map is the right version
     EEPROM.put(MEM_MAP::versionAddr,MemVersionNumber);
