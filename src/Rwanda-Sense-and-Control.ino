@@ -46,11 +46,12 @@
 // v35 - Fixed settings for power - 5.080V for panel threshold
 // v36 - Solar charge fix (enableBuck) and double-tap open and close
 // v37 - This fix is to move to deviceOS@2.0.0-rc2 and take out the PMIC fix required above.  
+// v38 - Moves to deviceOS@2.0.0-rc3 and removing the extra Webhooks
 
 // Particle Product definitions
 PRODUCT_ID(10709);                                   // Connected Counter Header
-PRODUCT_VERSION(37);
-const char releaseNumber[6] = "37";                  // Displays the release on the menu
+PRODUCT_VERSION(38);
+const char releaseNumber[6] = "38";                  // Displays the release on the menu
 
 
 // Included Libraries
@@ -474,10 +475,10 @@ void sendEvent()
   char data[256];                                                         // Store the date in this character array - not global
   snprintf(data, sizeof(data), "{\"Temperature\":%4.1f, \"Humidity\":%4.1f, \"LightLevel\":%4.1f, \"Soilmoisture1\":%i, \"Soilmoisture2\":%i, \"waterPressure\":%i, \"Solenoid\":%i, \"battery\":%i, \"key1\":\"%s\", \"Resets\":%i, \"Alerts\":%i}", current.temperature, current.humidity, current.lightLevel, current.soilMoisture1, current.soilMoisture2, current.pressure, current.solenoidState, sysStatus.stateOfCharge, batteryContextStr, sysStatus.resetCount, current.alertCount );
   waitUntil(meterParticlePublish);
-  Particle.publish("Rwanda-Sense-And-Control-Elastic", data, PRIVATE);
-  waitUntil(meterParticlePublish);
-  Particle.publish("agriculture-aws-webhook",data,PRIVATE);
-  waitUntil(meterParticlePublish);
+  // Particle.publish("Rwanda-Sense-And-Control-Elastic", data, PRIVATE);
+  // waitUntil(meterParticlePublish);
+  // Particle.publish("agriculture-aws-webhook",data,PRIVATE);
+  // waitUntil(meterParticlePublish);
   Particle.publish("Rwanda-Sense-And-Control", data, PRIVATE);
 
   currentHourlyPeriod = Time.hour();                                      // Change the time period
